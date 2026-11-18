@@ -107,7 +107,7 @@ export function ExerciseListView({
   };
 
   return (
-    <div className="flex-1 flex flex-col space-y-3 px-3 py-3">
+    <div className="flex-1 flex flex-col space-y-3 px-3 pt-3 pb-24">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border/60 pb-2">
         <div className="flex items-center gap-1.5">

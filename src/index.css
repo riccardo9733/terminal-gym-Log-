@@ -4,32 +4,33 @@
 
 @layer base {
   :root {
-    --background: #201d1d;
-    --foreground: #fdfcfc;
-    --card: #272323;
-    --card-foreground: #fdfcfc;
-    --popover: #272323;
-    --popover-foreground: #fdfcfc;
-    --primary: #007aff;
-    --primary-foreground: #fdfcfc;
-    --secondary: #2e2a2a;
-    --secondary-foreground: #fdfcfc;
-    --muted: #2e2a2a;
-    --muted-foreground: #9a9898;
-    --accent: #30d158;
-    --accent-foreground: #201d1d;
-    --warning: #ff9f0a;
-    --warning-foreground: #201d1d;
-    --destructive: #ff3b30;
-    --destructive-foreground: #fdfcfc;
-    --border: rgba(253, 252, 252, 0.14);
-    --input: rgba(253, 252, 252, 0.18);
-    --ring: #007aff;
+    /* OpenCode Terminal Mono RGB Channels (32 29 29 = #201d1d) */
+    --background: 32 29 29;
+    --foreground: 253 252 252;
+    --card: 39 35 35;
+    --card-foreground: 253 252 252;
+    --popover: 39 35 35;
+    --popover-foreground: 253 252 252;
+    --primary: 0 122 255;
+    --primary-foreground: 253 252 252;
+    --secondary: 46 42 42;
+    --secondary-foreground: 253 252 252;
+    --muted: 46 42 42;
+    --muted-foreground: 154 152 152;
+    --accent: 48 209 88;
+    --accent-foreground: 32 29 29;
+    --warning: 255 159 10;
+    --warning-foreground: 32 29 29;
+    --destructive: 255 59 48;
+    --destructive-foreground: 253 252 252;
+    --border: 253 252 252 / 0.14;
+    --input: 253 252 252 / 0.18;
+    --ring: 0 122 255;
     --radius: 0.25rem;
   }
 
   * {
-    @apply border-border;
+    border-color: rgb(var(--border));
     box-sizing: border-box;
     font-variant-numeric: tabular-nums;
     -webkit-tap-highlight-color: transparent;

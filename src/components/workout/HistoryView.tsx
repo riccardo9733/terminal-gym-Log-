@@ -30,7 +30,7 @@ export function HistoryView({
   };
 
   return (
-    <div className="flex-1 flex flex-col space-y-3 px-3 py-3">
+    <div className="flex-1 flex flex-col space-y-3 px-3 pt-3 pb-24">
       <div className="flex items-center justify-between border-b border-border/60 pb-2">
         <div className="flex items-center gap-1.5">
           <Calendar className="h-4 w-4 text-primary" strokeWidth={2} />

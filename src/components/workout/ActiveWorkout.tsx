@@ -149,7 +149,7 @@ export function ActiveWorkout({
   }, 0);
 
   return (
-    <div className="flex-1 flex flex-col space-y-3 px-3 py-3">
+    <div className="flex-1 flex flex-col space-y-3 px-3 pt-3 pb-24">
       {/* Active Workout Header */}
       <div className="rounded border border-border bg-card p-3 shadow-xs">
         <div className="flex items-center justify-between">

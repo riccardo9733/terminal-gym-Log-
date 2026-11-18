@@ -300,7 +300,7 @@ export function App() {
               />
             ) : (
               /* Idle Workout Launcher Screen */
-              <div className="flex-1 flex flex-col space-y-4 px-3 py-3">
+              <div className="flex-1 flex flex-col space-y-4 px-3 pt-3 pb-24">
                 {/* Hero Card */}
                 <div className="rounded border border-border bg-card p-4 space-y-3">
                   <div className="flex items-center justify-between">
