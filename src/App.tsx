@@ -4,20 +4,17 @@ import {
   TrendingUp,
   Plus,
   Bookmark,
-  Edit2,
-  Trash2,
-  Clock,
+  ChevronRight,
 } from 'lucide-react';
 import { MobileAppShell } from './components/layout/MobileAppShell';
 import { TopStatusBar } from './components/layout/TopStatusBar';
 import { BottomDock, NavTab } from './components/layout/BottomDock';
 import { ActiveWorkout } from './components/workout/ActiveWorkout';
 import { HistoryView } from './components/workout/HistoryView';
-import { ExerciseListView } from './components/workout/ExerciseListView';
+import { RoutinesView } from './components/workout/RoutinesView';
 import { AuthModal } from './components/workout/AuthModal';
 import { RoutineEditorModal } from './components/workout/RoutineEditorModal';
 import { Button } from './components/ui/button';
-import { Badge } from './components/ui/badge';
 import { useAuth } from './hooks/useAuth';
 import { useWakeLock } from './hooks/useWakeLock';
 import { useNetworkSync } from './hooks/useNetworkSync';
@@ -32,7 +29,7 @@ import {
   UserExerciseMeta,
   MuscleGroup,
 } from './types/workout';
-import { generateId, formatDate, formatShortDate } from './lib/utils';
+import { generateId, formatDate } from './lib/utils';
 
 export function App() {
   const {
@@ -164,7 +161,7 @@ export function App() {
   const handleSaveSessionAsRoutine = async (session: WorkoutSession) => {
     const created = await routineService.createRoutineFromSession(userId, session);
     await loadRoutines();
-    alert(`Scheda "${created.title}" salvata con successo! Potrai rieseguirla in qualsiasi momento.`);
+    alert(`Scheda "${created.title}" salvata! La trovi nella tab SCHEDE.`);
   };
 
   // Update active workout
@@ -291,6 +288,7 @@ export function App() {
 
       {/* Main View Router */}
       <main className="flex-1 flex flex-col">
+        {/* 1. SESSION TAB */}
         {currentTab === 'workout' && (
           <>
             {activeSession ? (
@@ -323,7 +321,7 @@ export function App() {
                       INIZIA_ALLENAMENTO
                     </h1>
                     <p className="text-xs font-mono text-muted-foreground mt-0.5">
-                      Scegli una scheda salvata o avvia una sessione libera.
+                      Avvia una sessione libera o scegli tra le tue schede.
                     </p>
                   </div>
 
@@ -339,114 +337,63 @@ export function App() {
                   </Button>
                 </div>
 
-                {/* SAVED ROUTINES / LE MIE SCHEDE SECTION */}
+                {/* QUICK ROUTINES LAUNCHER */}
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between px-0.5">
                     <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">
                       <Bookmark className="h-3.5 w-3.5 text-primary" strokeWidth={2} />
-                      <span>LE_MIE_SCHEDE ({routines.length})</span>
+                      <span>SCHEDE_RAPIDE</span>
                     </div>
 
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      onClick={() => {
-                        setRoutineToEdit(null);
-                        setRoutineEditorOpen(true);
-                      }}
-                      className="h-7 px-2 text-[10px] font-mono"
+                    <button
+                      type="button"
+                      onClick={() => setCurrentTab('routines')}
+                      className="flex items-center gap-0.5 text-[10px] font-mono text-primary font-bold hover:underline"
                     >
-                      <Plus className="mr-1 h-3 w-3" strokeWidth={2} />
-                      CREA_SCHEDA
-                    </Button>
+                      <span>TUTTE LE SCHEDE ({routines.length})</span>
+                      <ChevronRight className="h-3 w-3" />
+                    </button>
                   </div>
 
-                  <div className="space-y-2">
-                    {routines.map((routine) => (
-                      <div
+                  <div className="grid grid-cols-2 gap-2">
+                    {routines.slice(0, 4).map((routine) => (
+                      <button
                         key={routine.id}
-                        className="rounded border border-border bg-card p-3 space-y-2 hover:border-primary/50 transition-colors"
+                        type="button"
+                        onClick={() => handleStartFromRoutine(routine)}
+                        className="rounded border border-border bg-card p-3 text-left hover:border-primary/60 hover:bg-secondary/40 active:bg-secondary transition-all flex flex-col justify-between"
                       >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <h3 className="text-sm font-bold font-mono text-foreground tracking-tight truncate">
-                                {routine.title}
-                              </h3>
-                              <Badge variant="outline" className="text-[9px] py-0 px-1 border-muted">
-                                {routine.exercises.length} ESERCIZI
-                              </Badge>
-                            </div>
-
-                            {routine.description && (
-                              <p className="mt-0.5 text-[11px] font-mono text-muted-foreground line-clamp-1">
-                                {routine.description}
-                              </p>
-                            )}
-
-                            {routine.lastPerformedAt && (
-                              <div className="mt-1 flex items-center gap-1 text-[10px] font-mono text-muted-foreground/70">
-                                <Clock className="h-2.5 w-2.5 text-muted-foreground" />
-                                <span>Ultima volta: {formatShortDate(routine.lastPerformedAt)}</span>
-                              </div>
-                            )}
+                        <div>
+                          <div className="flex items-center justify-between gap-1">
+                            <h4 className="text-xs font-bold font-mono text-foreground truncate">
+                              {routine.title}
+                            </h4>
                           </div>
-
-                          {/* Routine Actions: Edit & Delete */}
-                          <div className="flex items-center gap-1 shrink-0">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setRoutineToEdit(routine);
-                                setRoutineEditorOpen(true);
-                              }}
-                              className="h-8 w-8 flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-                              title="Modifica scheda"
-                            >
-                              <Edit2 className="h-3.5 w-3.5" strokeWidth={1.75} />
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteRoutine(routine.id)}
-                              className="h-8 w-8 flex items-center justify-center rounded text-muted-foreground hover:text-destructive hover:bg-secondary transition-colors"
-                              title="Elimina scheda"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" strokeWidth={1.75} />
-                            </button>
+                          <div className="mt-1 text-[10px] font-mono text-muted-foreground line-clamp-1">
+                            {routine.exercises.length} movimenti
                           </div>
                         </div>
 
-                        {/* Exercise tags preview */}
-                        <div className="flex flex-wrap gap-1 pt-1 border-t border-border/40">
-                          {routine.exercises.slice(0, 4).map((ex, idx) => (
-                            <span
-                              key={ex.exerciseId + idx}
-                              className="rounded bg-secondary/80 px-1.5 py-0.5 text-[9px] font-mono text-muted-foreground border border-border/40 truncate max-w-[130px]"
-                            >
-                              {ex.name}
-                            </span>
-                          ))}
-                          {routine.exercises.length > 4 && (
-                            <span className="text-[9px] font-mono text-muted-foreground/60 py-0.5">
-                              +{routine.exercises.length - 4} altri
-                            </span>
-                          )}
+                        <div className="mt-2.5 flex items-center justify-between text-[10px] font-mono text-accent font-bold pt-2 border-t border-border/40">
+                          <span>AVVIA</span>
+                          <Play className="h-3 w-3 fill-current" />
                         </div>
-
-                        {/* Start Routine Button */}
-                        <Button
-                          variant="accent"
-                          size="sm"
-                          onClick={() => handleStartFromRoutine(routine)}
-                          className="w-full text-xs font-mono font-bold tracking-wider h-10 mt-1"
-                        >
-                          <Play className="mr-1.5 h-3.5 w-3.5 fill-current" strokeWidth={0} />
-                          AVVIA_SCHEDA &gt;
-                        </Button>
-                      </div>
+                      </button>
                     ))}
                   </div>
+
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => {
+                      setRoutineToEdit(null);
+                      setRoutineEditorOpen(true);
+                    }}
+                    className="w-full text-xs font-mono border-dashed border-border/80"
+                  >
+                    <Plus className="mr-1.5 h-3.5 w-3.5" />
+                    CREA_NUOVA_SCHEDA
+                  </Button>
                 </div>
 
                 {/* Metrics Summary Strip */}
@@ -488,6 +435,7 @@ export function App() {
           </>
         )}
 
+        {/* 2. HISTORY / LOGS TAB */}
         {currentTab === 'history' && (
           <HistoryView
             history={history}
@@ -496,10 +444,21 @@ export function App() {
           />
         )}
 
-        {currentTab === 'exercises' && (
-          <ExerciseListView
-            userExercises={userExercises}
-            onCreateExercise={handleCreateCustomExercise}
+        {/* 3. ROUTINES / SCHEDE TAB (Replaces Exercises) */}
+        {currentTab === 'routines' && (
+          <RoutinesView
+            routines={routines}
+            onStartRoutine={handleStartFromRoutine}
+            onEditRoutine={(routine) => {
+              setRoutineToEdit(routine);
+              setRoutineEditorOpen(true);
+            }}
+            onDeleteRoutine={handleDeleteRoutine}
+            onSaveRoutine={handleSaveRoutine}
+            onCreateNewRoutine={() => {
+              setRoutineToEdit(null);
+              setRoutineEditorOpen(true);
+            }}
           />
         )}
       </main>

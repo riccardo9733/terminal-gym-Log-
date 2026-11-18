@@ -1,7 +1,7 @@
-import { Dumbbell, History, BookOpen } from 'lucide-react';
+import { Dumbbell, History, Bookmark } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
-export type NavTab = 'workout' | 'history' | 'exercises';
+export type NavTab = 'workout' | 'history' | 'routines';
 
 interface BottomDockProps {
   currentTab: NavTab;
@@ -51,16 +51,16 @@ export function BottomDock({
         </button>
 
         <button
-          onClick={() => onTabChange('exercises')}
+          onClick={() => onTabChange('routines')}
           className={cn(
             'flex flex-1 flex-col items-center justify-center py-1 text-[10px] font-mono tracking-wider transition-colors min-h-[44px]',
-            currentTab === 'exercises'
+            currentTab === 'routines'
               ? 'text-primary font-bold'
               : 'text-muted-foreground hover:text-foreground'
           )}
         >
-          <BookOpen className="h-4 w-4" strokeWidth={1.75} />
-          <span className="mt-1">EXERCISES</span>
+          <Bookmark className="h-4 w-4" strokeWidth={1.75} />
+          <span className="mt-1">SCHEDE</span>
         </button>
       </div>
     </nav>
