@@ -15,13 +15,14 @@ import { RestTimer } from './RestTimer';
 import { ExerciseCombobox } from './ExerciseCombobox';
 import { Button } from '../ui/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '../ui/dialog';
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+  DrawerBody,
+  DrawerFooter,
+} from '../ui/drawer';
 import { generateId, formatDuration } from '../../lib/utils';
 import { useRestTimer } from '../../hooks/useRestTimer';
 
@@ -328,33 +329,35 @@ export function ActiveWorkout({
         }}
       />
 
-      {/* Finish Confirmation Dialog */}
-      <Dialog open={showFinishConfirm} onOpenChange={setShowFinishConfirm}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>FINISH_WORKOUT_SESSION?</DialogTitle>
-            <DialogDescription>
+      {/* Finish Confirmation Drawer */}
+      <Drawer open={showFinishConfirm} onOpenChange={setShowFinishConfirm}>
+        <DrawerContent className="max-h-[85dvh]">
+          <DrawerHeader>
+            <DrawerTitle>FINISH_WORKOUT_SESSION?</DrawerTitle>
+            <DrawerDescription>
               Riepilogo: {completedSets} serie completate su {session.exercises.length} esercizi ({totalVolumeKg.toLocaleString()}kg in {formatDuration(elapsedSeconds)}).
-            </DialogDescription>
-          </DialogHeader>
+            </DrawerDescription>
+          </DrawerHeader>
 
-          {/* Option to also save as routine */}
-          <div className="rounded border border-border bg-background p-3">
-            <label className="flex items-center gap-2.5 cursor-pointer text-xs font-mono text-foreground select-none">
-              <input
-                type="checkbox"
-                checked={saveAsRoutineCheck}
-                onChange={(e) => setSaveAsRoutineCheck(e.target.checked)}
-                className="h-4 w-4 rounded border-input bg-card accent-accent cursor-pointer"
-              />
-              <span className="font-semibold">Salva anche come scheda riutilizzabile</span>
-            </label>
-            <p className="text-[10px] font-mono text-muted-foreground mt-1 pl-6">
-              Verrà creata una scheda &quot;{session.title.replace(/_\d{4}-\d{2}-\d{2}/, '')}&quot; con questi esercizi per rieseguirla facilmente in futuro.
-            </p>
-          </div>
+          <DrawerBody className="space-y-3">
+            {/* Option to also save as routine */}
+            <div className="rounded border border-border bg-background p-3">
+              <label className="flex items-center gap-2.5 cursor-pointer text-xs font-mono text-foreground select-none">
+                <input
+                  type="checkbox"
+                  checked={saveAsRoutineCheck}
+                  onChange={(e) => setSaveAsRoutineCheck(e.target.checked)}
+                  className="h-4 w-4 rounded border-input bg-card accent-accent cursor-pointer"
+                />
+                <span className="font-semibold">Salva anche come scheda riutilizzabile</span>
+              </label>
+              <p className="text-[10px] font-mono text-muted-foreground mt-1 pl-6">
+                Verrà creata una scheda &quot;{session.title.replace(/_\d{4}-\d{2}-\d{2}/, '')}&quot; con questi esercizi per rieseguirla facilmente in futuro.
+              </p>
+            </div>
+          </DrawerBody>
 
-          <DialogFooter>
+          <DrawerFooter>
             <Button variant="outline" onClick={() => setShowFinishConfirm(false)}>
               CONTINUA
             </Button>
@@ -374,20 +377,20 @@ export function ActiveWorkout({
             >
               SALVA_E_REGISTRA
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
 
-      {/* Cancel Confirmation Dialog */}
-      <Dialog open={showCancelConfirm} onOpenChange={setShowCancelConfirm}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-destructive">DISCARD_WORKOUT_SESSION?</DialogTitle>
-            <DialogDescription>
+      {/* Cancel Confirmation Drawer */}
+      <Drawer open={showCancelConfirm} onOpenChange={setShowCancelConfirm}>
+        <DrawerContent className="max-h-[85dvh]">
+          <DrawerHeader>
+            <DrawerTitle className="text-destructive">DISCARD_WORKOUT_SESSION?</DrawerTitle>
+            <DrawerDescription>
               Vuoi davvero scartare questo allenamento? Tutte le serie registrate in questa sessione andranno perse in modo permanente.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
+            </DrawerDescription>
+          </DrawerHeader>
+          <DrawerFooter>
             <Button variant="outline" onClick={() => setShowCancelConfirm(false)}>
               CONTINUA_SESSIONE
             </Button>
@@ -400,9 +403,9 @@ export function ActiveWorkout({
             >
               CONFERMA_DISCARD
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 }

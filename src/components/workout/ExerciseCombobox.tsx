@@ -1,11 +1,11 @@
 import { useState, useMemo } from 'react';
 import { Plus, Sparkles } from 'lucide-react';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '../ui/dialog';
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from '../ui/drawer';
 import {
   Command,
   CommandInput,
@@ -159,13 +159,13 @@ export function ExerciseCombobox({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="p-0 sm:max-w-md max-h-[85dvh] flex flex-col gap-0 border-border bg-card">
-        <DialogHeader className="p-3 border-b border-border">
-          <DialogTitle className="text-xs font-mono tracking-wider uppercase text-foreground">
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent className="p-0 sm:max-w-md max-h-[88dvh] flex flex-col gap-0 border-border bg-card">
+        <DrawerHeader className="p-3 border-b border-border">
+          <DrawerTitle className="text-xs font-mono tracking-wider uppercase text-foreground">
             SELECT_OR_CREATE_EXERCISE
-          </DialogTitle>
-        </DialogHeader>
+          </DrawerTitle>
+        </DrawerHeader>
 
         {/* Muscle group filter pills */}
         <div className="flex items-center gap-1 overflow-x-auto px-3 py-2 border-b border-border/60 no-scrollbar">
@@ -254,7 +254,7 @@ export function ExerciseCombobox({
             )}
           </CommandList>
         </Command>
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   );
 }

@@ -44,10 +44,11 @@ A minimalist, offline-first **mobile-first PWA** workout tracker built by develo
 
 ## Core Engineering Invariants
 1. **Mobile-First PWA Shell:** Always design for a `375px–430px` portrait viewport first (`max-w-md mx-auto min-h-[100dvh]`). Never use `100vh` or `h-screen`; always use `100dvh` with `env(safe-area-inset-*)`.
-2. **Offline-First by Default:** Never block UI interactions on Firestore network writes. Use Firestore's `persistentLocalCache()` combined with React 19 `useOptimistic` so every set toggle, weight edit, and timer start resolves in `0ms`.
-3. **1-Read / 1-Write Workout Documents:** Store an entire workout session (including nested exercises and sets) as a single document under `users/{uid}/workouts/{workoutId}`.
-4. **Hybrid Exercise Selection:** Never import massive external JSON exercise datasets. Combine the lightweight static seed (`src/data/default-exercises.ts`), user history (`users/{uid}/meta/exercises`), and inline creation via a shadcn `Command` combobox.
-5. **React 19 Idioms:** Prefer React 19 hooks (`useOptimistic`, `useActionState`, `use()`) and clean functional components without legacy boilerplate (`forwardRef` is unnecessary in React 19).
+2. **Bottom Drawers Only (Zero Centered Dialogs):** All modal sheets, pickers, routine creators, and confirmation prompts must be rendered as bottom drawers (`Drawer`) anchored to the bottom of the viewport with safe-area bottom padding. Never use centered dialogs on mobile.
+3. **Offline-First by Default:** Never block UI interactions on Firestore network writes. Use Firestore's `persistentLocalCache()` combined with React 19 `useOptimistic` so every set toggle, weight edit, and timer start resolves in `0ms`.
+4. **1-Read / 1-Write Workout Documents:** Store an entire workout session (including nested exercises and sets) as a single document under `users/{uid}/workouts/{workoutId}`.
+5. **Hybrid Exercise Selection:** Never import massive external JSON exercise datasets. Combine the lightweight static seed (`src/data/default-exercises.ts`), user history (`users/{uid}/meta/exercises`), and inline creation via a shadcn `Command` combobox.
+6. **React 19 Idioms:** Prefer React 19 hooks (`useOptimistic`, `useActionState`, `use()`) and clean functional components without legacy boilerplate (`forwardRef` is unnecessary in React 19).
 
 ## Commands
 - `npm run dev` — Start Vite dev server (expose via `--host` when testing on mobile devices on LAN)

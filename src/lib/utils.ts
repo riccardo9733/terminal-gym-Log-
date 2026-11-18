@@ -45,6 +45,13 @@ export function formatShortDate(epochMs: number): string {
   return `${day}/${month}`;
 }
 
+export function getTodayFormatted(): string {
+  const now = new Date();
+  const dayNames = ['DOMENICA', 'LUNEDÌ', 'MARTEDÌ', 'MERCOLEDÌ', 'GIOVEDÌ', 'VENERDÌ', 'SABATO'];
+  const monthNames = ['GEN', 'FEB', 'MAR', 'APR', 'MAG', 'GIU', 'LUG', 'AGO', 'SET', 'OTT', 'NOV', 'DIC'];
+  return `${dayNames[now.getDay()]}, ${now.getDate()} ${monthNames[now.getMonth()]} ${now.getFullYear()}`;
+}
+
 /**
  * Web Audio API synthesizer for countdown alerts
  * Zero external audio assets required, guaranteed offline-ready

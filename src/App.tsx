@@ -5,6 +5,10 @@ import {
   Plus,
   Bookmark,
   ChevronRight,
+  Calendar,
+  Clock,
+  RotateCcw,
+  Dumbbell,
 } from 'lucide-react';
 import { MobileAppShell } from './components/layout/MobileAppShell';
 import { TopStatusBar } from './components/layout/TopStatusBar';
@@ -12,9 +16,11 @@ import { BottomDock, NavTab } from './components/layout/BottomDock';
 import { ActiveWorkout } from './components/workout/ActiveWorkout';
 import { HistoryView } from './components/workout/HistoryView';
 import { RoutinesView } from './components/workout/RoutinesView';
+import { StartWorkoutDrawer } from './components/workout/StartWorkoutDrawer';
 import { AuthModal } from './components/workout/AuthModal';
 import { RoutineEditorModal } from './components/workout/RoutineEditorModal';
 import { Button } from './components/ui/button';
+import { Badge } from './components/ui/badge';
 import { useAuth } from './hooks/useAuth';
 import { useWakeLock } from './hooks/useWakeLock';
 import { useNetworkSync } from './hooks/useNetworkSync';
@@ -29,7 +35,7 @@ import {
   UserExerciseMeta,
   MuscleGroup,
 } from './types/workout';
-import { generateId, formatDate } from './lib/utils';
+import { generateId, formatDate, formatDuration, getTodayFormatted } from './lib/utils';
 
 export function App() {
   const {
@@ -49,6 +55,7 @@ export function App() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [routineEditorOpen, setRoutineEditorOpen] = useState(false);
   const [routineToEdit, setRoutineToEdit] = useState<WorkoutRoutine | null>(null);
+  const [startWorkoutDrawerOpen, setStartWorkoutDrawerOpen] = useState(false);
   const [pendingWritesCount, setPendingWritesCount] = useState(0);
 
   // Sync state & Wake lock
@@ -276,6 +283,24 @@ export function App() {
     );
   }, 0);
 
+  // Latest completed session
+  const lastSession = history.length > 0 ? history[0] : null;
+  const lastSessionDurationSec = lastSession?.endedAt
+    ? Math.max(0, Math.floor((lastSession.endedAt - lastSession.startedAt) / 1000))
+    : 0;
+  const lastSessionSetsCount = lastSession?.exercises.reduce(
+    (acc, ex) => acc + ex.sets.filter((s) => s.completed).length,
+    0
+  ) || 0;
+  const lastSessionVolume = lastSession?.exercises.reduce((acc, ex) => {
+    return (
+      acc +
+      ex.sets
+        .filter((s) => s.completed)
+        .reduce((sAcc, s) => sAcc + s.weight * s.reps, 0)
+    );
+  }, 0) || 0;
+
   return (
     <MobileAppShell>
       {/* Top Status Bar */}
@@ -304,9 +329,22 @@ export function App() {
               />
             ) : (
               /* Idle Workout Launcher Screen */
-              <div className="flex-1 flex flex-col space-y-4 px-3 pt-3 pb-24">
-                {/* Hero Card */}
-                <div className="rounded border border-border bg-card p-4 space-y-3">
+              <div className="flex-1 flex flex-col space-y-3.5 px-3 pt-3 pb-24">
+                {/* 1. Date of Today Banner */}
+                <div className="flex items-center justify-between rounded border border-border bg-card/60 px-3 py-2 text-xs font-mono">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Calendar className="h-4 w-4 text-primary" strokeWidth={2} />
+                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground/80">
+                      DATA_DI_OGGI:
+                    </span>
+                  </div>
+                  <span className="font-bold text-foreground tracking-tight text-[11px]">
+                    {getTodayFormatted()}
+                  </span>
+                </div>
+
+                {/* 2. Hero Action Card: INIZIA UN ALLENAMENTO */}
+                <div className="rounded border border-primary/50 bg-card p-4 space-y-3 shadow-md">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-mono uppercase tracking-widest text-accent font-bold">
                       &gt; PRONTO_PER_L&apos;ALLENAMENTO
@@ -318,31 +356,112 @@ export function App() {
 
                   <div>
                     <h1 className="text-xl font-black font-mono tracking-tight text-foreground">
-                      INIZIA_ALLENAMENTO
+                      SESSIONE_DI_ALLENAMENTO
                     </h1>
                     <p className="text-xs font-mono text-muted-foreground mt-0.5">
-                      Avvia una sessione libera o scegli tra le tue schede.
+                      Apri il selettore per scegliere tra le tue schede o avviare una sessione libera.
                     </p>
                   </div>
 
-                  {/* Primary Start Empty Button */}
+                  {/* Primary Trigger: Opens Bottom Drawer */}
                   <Button
-                    variant="outline"
+                    variant="accent"
                     size="lg"
-                    onClick={handleStartEmptyWorkout}
-                    className="w-full text-xs font-mono font-bold tracking-wider h-11 border-dashed"
+                    onClick={() => setStartWorkoutDrawerOpen(true)}
+                    className="w-full text-xs font-mono font-bold tracking-wider h-12 shadow-sm"
                   >
                     <Play className="mr-2 h-4 w-4 fill-current" strokeWidth={0} />
-                    SESSIONE_LIBERA (VUOTA)
+                    INIZIA UN ALLENAMENTO &gt;
                   </Button>
                 </div>
 
-                {/* QUICK ROUTINES LAUNCHER */}
-                <div className="space-y-2.5">
-                  <div className="flex items-center justify-between px-0.5">
+                {/* 3. Ultima sessione svolta (se presente) */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between px-0.5 text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">
+                    <div className="flex items-center gap-1.5">
+                      <Clock className="h-3.5 w-3.5 text-primary" strokeWidth={2} />
+                      <span>ULTIMA_SESSIONE_SVOLTA</span>
+                    </div>
+
+                    {lastSession && (
+                      <span className="text-muted-foreground/70">
+                        {formatDate(lastSession.startedAt).split(' ')[0]}
+                      </span>
+                    )}
+                  </div>
+
+                  {lastSession ? (
+                    <div className="rounded border border-border bg-card p-3 space-y-2.5 shadow-2xs">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <h3 className="text-sm font-bold font-mono text-foreground tracking-tight truncate">
+                              {lastSession.title}
+                            </h3>
+                            <Badge variant="outline" className="text-[9px] py-0 px-1 border-muted">
+                              {lastSession.exercises.length} ESERCIZI
+                            </Badge>
+                          </div>
+
+                          <div className="mt-1 flex items-center gap-3 text-[10px] font-mono text-muted-foreground">
+                            <span>{lastSessionSetsCount} serie</span>
+                            <span className="text-foreground font-semibold">
+                              {lastSessionVolume.toLocaleString()}kg
+                            </span>
+                            {lastSessionDurationSec > 0 && (
+                              <span>{formatDuration(lastSessionDurationSec)}</span>
+                            )}
+                          </div>
+                        </div>
+
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => handleStartFromHistoryTemplate(lastSession)}
+                          className="h-8 px-2.5 text-[10px] font-mono font-bold shrink-0 border-border hover:border-primary/50"
+                          title="Ripeti gli stessi esercizi di questa sessione"
+                        >
+                          <RotateCcw className="mr-1 h-3 w-3 text-primary" strokeWidth={2} />
+                          RIPETI
+                        </Button>
+                      </div>
+
+                      {/* Exercises snapshot preview */}
+                      <div className="flex flex-wrap gap-1 pt-1.5 border-t border-border/40">
+                        {lastSession.exercises.slice(0, 3).map((ex, idx) => (
+                          <span
+                            key={ex.exerciseId + idx}
+                            className="rounded bg-secondary/70 px-1.5 py-0.5 text-[9px] font-mono text-muted-foreground border border-border/40 truncate max-w-[120px]"
+                          >
+                            {ex.name}
+                          </span>
+                        ))}
+                        {lastSession.exercises.length > 3 && (
+                          <span className="text-[9px] font-mono text-muted-foreground/60 py-0.5">
+                            +{lastSession.exercises.length - 3} altri
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="rounded border border-dashed border-border bg-card/30 p-6 text-center">
+                      <Dumbbell className="mx-auto h-7 w-7 text-muted-foreground/30 mb-1.5" strokeWidth={1.5} />
+                      <p className="text-xs font-mono text-muted-foreground">
+                        Nessun allenamento completato finora.
+                      </p>
+                      <p className="text-[10px] font-mono text-muted-foreground/60 mt-0.5">
+                        I tuoi progressi e l&apos;ultima sessione svolta compariranno qui.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* 4. Schede rapide shortcut strip */}
+                <div className="rounded border border-border bg-card/60 p-3 space-y-2">
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">
                       <Bookmark className="h-3.5 w-3.5 text-primary" strokeWidth={2} />
-                      <span>SCHEDE_RAPIDE</span>
+                      <span>LE_TUE_SCHEDE ({routines.length})</span>
                     </div>
 
                     <button
@@ -350,53 +469,43 @@ export function App() {
                       onClick={() => setCurrentTab('routines')}
                       className="flex items-center gap-0.5 text-[10px] font-mono text-primary font-bold hover:underline"
                     >
-                      <span>TUTTE LE SCHEDE ({routines.length})</span>
+                      <span>VEDI TUTTE</span>
                       <ChevronRight className="h-3 w-3" />
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
                     {routines.slice(0, 4).map((routine) => (
                       <button
                         key={routine.id}
                         type="button"
                         onClick={() => handleStartFromRoutine(routine)}
-                        className="rounded border border-border bg-card p-3 text-left hover:border-primary/60 hover:bg-secondary/40 active:bg-secondary transition-all flex flex-col justify-between"
+                        className="shrink-0 rounded border border-border bg-background px-2.5 py-1.5 text-left hover:border-accent hover:bg-secondary/40 active:bg-secondary transition-all"
                       >
-                        <div>
-                          <div className="flex items-center justify-between gap-1">
-                            <h4 className="text-xs font-bold font-mono text-foreground truncate">
-                              {routine.title}
-                            </h4>
-                          </div>
-                          <div className="mt-1 text-[10px] font-mono text-muted-foreground line-clamp-1">
-                            {routine.exercises.length} movimenti
-                          </div>
+                        <div className="text-xs font-bold font-mono text-foreground truncate max-w-[120px]">
+                          {routine.title}
                         </div>
-
-                        <div className="mt-2.5 flex items-center justify-between text-[10px] font-mono text-accent font-bold pt-2 border-t border-border/40">
-                          <span>AVVIA</span>
-                          <Play className="h-3 w-3 fill-current" />
+                        <div className="text-[9px] font-mono text-accent font-semibold mt-0.5">
+                          {routine.exercises.length} es. &gt;
                         </div>
                       </button>
                     ))}
-                  </div>
 
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => {
-                      setRoutineToEdit(null);
-                      setRoutineEditorOpen(true);
-                    }}
-                    className="w-full text-xs font-mono border-dashed border-border/80"
-                  >
-                    <Plus className="mr-1.5 h-3.5 w-3.5" />
-                    CREA_NUOVA_SCHEDA
-                  </Button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRoutineToEdit(null);
+                        setRoutineEditorOpen(true);
+                      }}
+                      className="shrink-0 flex items-center gap-1 rounded border border-dashed border-border bg-background/50 px-2.5 py-2 text-xs font-mono text-primary hover:bg-secondary/40 transition-all"
+                    >
+                      <Plus className="h-3 w-3" />
+                      <span>CREA</span>
+                    </button>
+                  </div>
                 </div>
 
-                {/* Metrics Summary Strip */}
+                {/* 5. Metrics Summary Strip */}
                 <div className="rounded border border-border bg-card/50 p-3 text-xs font-mono space-y-2">
                   <div className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                     <TrendingUp className="h-3.5 w-3.5 text-accent" strokeWidth={2} />
@@ -405,7 +514,7 @@ export function App() {
 
                   <div className="grid grid-cols-2 gap-3 pt-1">
                     <div className="rounded border border-border/40 bg-secondary/40 p-2">
-                      <div className="text-[10px] text-muted-foreground">SESSIONI_COMPLETATE</div>
+                      <div className="text-[10px] text-muted-foreground">SESSIONI_TOTALI</div>
                       <div className="text-lg font-black font-mono text-foreground tabular-nums">
                         {totalCompletedWorkouts}
                       </div>
@@ -420,15 +529,6 @@ export function App() {
                       </div>
                     </div>
                   </div>
-
-                  {history.length > 0 && (
-                    <div className="pt-1 text-[10px] text-muted-foreground flex justify-between">
-                      <span>ULTIMO_ALLENAMENTO:</span>
-                      <span className="text-foreground">
-                        {formatDate(history[0].startedAt)}
-                      </span>
-                    </div>
-                  )}
                 </div>
               </div>
             )}
@@ -444,7 +544,7 @@ export function App() {
           />
         )}
 
-        {/* 3. ROUTINES / SCHEDE TAB (Replaces Exercises) */}
+        {/* 3. ROUTINES / SCHEDE TAB */}
         {currentTab === 'routines' && (
           <RoutinesView
             routines={routines}
@@ -470,7 +570,20 @@ export function App() {
         hasActiveWorkout={Boolean(activeSession)}
       />
 
-      {/* Routine Editor / Creator Modal */}
+      {/* Start Workout Bottom Drawer */}
+      <StartWorkoutDrawer
+        open={startWorkoutDrawerOpen}
+        onOpenChange={setStartWorkoutDrawerOpen}
+        routines={routines}
+        onStartEmpty={handleStartEmptyWorkout}
+        onStartRoutine={handleStartFromRoutine}
+        onCreateRoutine={() => {
+          setRoutineToEdit(null);
+          setRoutineEditorOpen(true);
+        }}
+      />
+
+      {/* Routine Editor / Creator Bottom Drawer */}
       <RoutineEditorModal
         open={routineEditorOpen}
         onOpenChange={setRoutineEditorOpen}
@@ -480,7 +593,7 @@ export function App() {
         onCreateCustomExercise={handleCreateCustomExercise}
       />
 
-      {/* Auth & Settings Modal */}
+      {/* Auth & Settings Bottom Drawer */}
       <AuthModal
         open={authModalOpen}
         onOpenChange={setAuthModalOpen}

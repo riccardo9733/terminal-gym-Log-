@@ -8,11 +8,12 @@ import {
   Copy,
 } from 'lucide-react';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '../ui/dialog';
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerBody,
+} from '../ui/drawer';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { UserProfile } from '../../types/workout';
@@ -68,16 +69,16 @@ VITE_FIREBASE_APP_ID=your_app_id`;
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent className="max-h-[88dvh]">
+        <DrawerHeader>
           <div className="flex items-center gap-2">
             <Terminal className="h-4 w-4 text-primary" strokeWidth={2} />
-            <DialogTitle>ACCOUNT_&_SETTINGS</DialogTitle>
+            <DrawerTitle>ACCOUNT_&_SETTINGS</DrawerTitle>
           </div>
-        </DialogHeader>
+        </DrawerHeader>
 
-        <div className="space-y-4 py-2">
+        <DrawerBody className="space-y-4 py-2">
           {/* User Status Card */}
           <div className="rounded border border-border bg-background p-3 text-xs font-mono">
             <div className="flex items-center justify-between">
@@ -201,8 +202,8 @@ VITE_FIREBASE_APP_ID=your_app_id`;
               <span className="text-foreground">WakeLock + WebAudio</span>
             </div>
           </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </DrawerBody>
+      </DrawerContent>
+    </Drawer>
   );
 }

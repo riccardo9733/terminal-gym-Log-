@@ -7,12 +7,13 @@ import {
   Bookmark,
 } from 'lucide-react';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '../ui/dialog';
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerBody,
+  DrawerFooter,
+} from '../ui/drawer';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import {
@@ -114,21 +115,21 @@ export function RoutineEditorModal({
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-h-[90dvh] flex flex-col p-4 sm:max-w-md border-border bg-card">
-          <DialogHeader>
+      <Drawer open={open} onOpenChange={onOpenChange}>
+        <DrawerContent className="max-h-[92dvh]">
+          <DrawerHeader>
             <div className="flex items-center gap-2">
               <Bookmark className="h-4 w-4 text-primary" strokeWidth={2} />
-              <DialogTitle>
+              <DrawerTitle>
                 {routineToEdit ? 'MODIFICA_SCHEDA' : 'CREA_NUOVA_SCHEDA'}
-              </DialogTitle>
+              </DrawerTitle>
             </div>
-          </DialogHeader>
+          </DrawerHeader>
 
-          <div className="flex-1 overflow-y-auto space-y-3 py-2 pr-1">
+          <DrawerBody className="space-y-3.5 pr-3">
             {/* Title */}
             <div>
-              <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block mb-1">
+              <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block mb-1 font-semibold">
                 NOME_SCHEDA *
               </label>
               <input
@@ -136,13 +137,13 @@ export function RoutineEditorModal({
                 placeholder="es. GAMBE_&_ADDOME o PUSH_HEAVY"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="h-10 w-full rounded border border-input bg-background px-3 text-sm font-mono text-foreground focus:border-primary focus:outline-none"
+                className="h-11 w-full rounded border border-input bg-background px-3 text-base font-mono text-foreground focus:border-primary focus:outline-none"
               />
             </div>
 
             {/* Description */}
             <div>
-              <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block mb-1">
+              <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block mb-1 font-semibold">
                 NOTE / DESCRIZIONE
               </label>
               <input
@@ -150,13 +151,13 @@ export function RoutineEditorModal({
                 placeholder="es. Focus quadricipiti, recupero 90s"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="h-9 w-full rounded border border-input bg-background px-3 text-xs font-mono text-foreground focus:border-primary focus:outline-none"
+                className="h-10 w-full rounded border border-input bg-background px-3 text-sm font-mono text-foreground focus:border-primary focus:outline-none"
               />
             </div>
 
             {/* Exercises List */}
             <div className="space-y-2 pt-1">
-              <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+              <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">
                 <span>ESERCIZI IN SCHEDA ({exercises.length})</span>
               </div>
 
@@ -246,15 +247,15 @@ export function RoutineEditorModal({
                 variant="outline"
                 size="sm"
                 onClick={() => setComboboxOpen(true)}
-                className="w-full border-dashed border-border/80 text-xs font-mono text-primary hover:text-primary"
+                className="w-full border-dashed border-border/80 text-xs font-mono text-primary hover:text-primary h-10"
               >
                 <Plus className="mr-1.5 h-3.5 w-3.5" />
                 AGGIUNGI_ESERCIZIO_A_SCHEDA
               </Button>
             </div>
-          </div>
+          </DrawerBody>
 
-          <DialogFooter className="pt-2 border-t border-border">
+          <DrawerFooter>
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               ANNULLA
             </Button>
@@ -265,11 +266,11 @@ export function RoutineEditorModal({
             >
               SALVA_SCHEDA
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
 
-      {/* Exercise Picker Modal */}
+      {/* Exercise Picker Drawer */}
       <ExerciseCombobox
         open={comboboxOpen}
         onOpenChange={setComboboxOpen}
