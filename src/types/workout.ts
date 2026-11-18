@@ -35,6 +35,27 @@ export interface WorkoutSession {
   endedAt?: number;        // Epoch ms
   exercises: WorkoutExercise[];
   updatedAt: number;
+  routineId?: string;      // Associated routine template ID if launched from a routine
+}
+
+export interface RoutineExercise {
+  exerciseId: string;
+  name: string;
+  muscleGroup: MuscleGroup;
+  targetSets: number;
+  defaultWeight?: number;
+  defaultReps?: number;
+  notes?: string;
+}
+
+export interface WorkoutRoutine {
+  id: string;
+  title: string;
+  description?: string;
+  exercises: RoutineExercise[];
+  createdAt: number;
+  updatedAt: number;
+  lastPerformedAt?: number;
 }
 
 export interface UserExerciseMeta {

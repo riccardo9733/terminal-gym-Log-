@@ -7,6 +7,7 @@ import {
   Dumbbell,
   Edit2,
   Check,
+  BookmarkPlus,
 } from 'lucide-react';
 import { WorkoutSession, WorkoutExercise, WorkoutSet, UserExerciseMeta, MuscleGroup } from '../../types/workout';
 import { ExerciseCard } from './ExerciseCard';
@@ -28,10 +29,11 @@ interface ActiveWorkoutProps {
   session: WorkoutSession;
   userExercises: Record<string, UserExerciseMeta>;
   onUpdateSession: (updated: WorkoutSession) => void;
-  onFinishSession: (session: WorkoutSession) => void;
+  onFinishSession: (session: WorkoutSession, saveAsRoutine?: boolean) => void;
   onCancelSession: () => void;
   onCreateCustomExercise: (name: string, muscleGroup: MuscleGroup) => void;
   onRecordSetPR: (exercise: WorkoutExercise, set: WorkoutSet) => void;
+  onSaveAsRoutine: (session: WorkoutSession) => void;
 }
 
 export function ActiveWorkout({
@@ -42,11 +44,13 @@ export function ActiveWorkout({
   onCancelSession,
   onCreateCustomExercise,
   onRecordSetPR,
+  onSaveAsRoutine,
 }: ActiveWorkoutProps) {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [comboboxOpen, setComboboxOpen] = useState(false);
   const [showFinishConfirm, setShowFinishConfirm] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [saveAsRoutineCheck, setSaveAsRoutineCheck] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [tempTitle, setTempTitle] = useState(session.title);
 
@@ -149,7 +153,7 @@ export function ActiveWorkout({
   }, 0);
 
   return (
-    <div className="flex-1 flex flex-col space-y-3 px-3 pt-3 pb-24">
+    <div className="flex-1 flex flex-col space-y-3 px-3 pt-3 pb-36">
       {/* Active Workout Header */}
       <div className="rounded border border-border bg-card p-3 shadow-xs">
         <div className="flex items-center justify-between">
@@ -184,10 +188,22 @@ export function ActiveWorkout({
             </div>
           )}
 
-          {/* Session Timer */}
-          <div className="flex items-center gap-1.5 rounded bg-secondary/80 px-2 py-1 text-xs font-mono font-semibold text-foreground border border-border tabular-nums shrink-0">
-            <Clock className="h-3.5 w-3.5 text-primary" strokeWidth={2} />
-            <span>{formatDuration(elapsedSeconds)}</span>
+          {/* Session Timer & Save As Routine Action */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              type="button"
+              onClick={() => onSaveAsRoutine(session)}
+              className="flex h-8 items-center gap-1 rounded border border-border bg-secondary/80 px-2 text-[10px] font-mono text-muted-foreground hover:text-primary hover:border-primary/50 transition-colors"
+              title="Salva questa sessione come scheda"
+            >
+              <BookmarkPlus className="h-3 w-3 text-primary" strokeWidth={2} />
+              <span>SALVA_SCHEDA</span>
+            </button>
+
+            <div className="flex items-center gap-1.5 rounded bg-secondary/80 px-2 py-1 text-xs font-mono font-semibold text-foreground border border-border tabular-nums">
+              <Clock className="h-3.5 w-3.5 text-primary" strokeWidth={2} />
+              <span>{formatDuration(elapsedSeconds)}</span>
+            </div>
           </div>
         </div>
 
@@ -268,25 +284,31 @@ export function ActiveWorkout({
         + ADD_EXERCISE
       </Button>
 
-      {/* Session Action Footer */}
-      <div className="grid grid-cols-2 gap-2 pt-2">
-        <Button
-          variant="destructive"
-          onClick={() => setShowCancelConfirm(true)}
-          className="w-full font-mono text-xs tracking-wider"
-        >
-          <XCircle className="mr-1.5 h-3.5 w-3.5" strokeWidth={1.75} />
-          DISCARD
-        </Button>
+      {/* ALWAYS VISIBLE PINNED BOTTOM ACTION BAR (Above the main navigation dock) */}
+      <div className="fixed bottom-14 left-0 right-0 z-30 border-t border-border bg-background shadow-2xl">
+        <div className="mx-auto flex max-w-md items-center justify-between gap-2.5 px-3 py-2">
+          {/* Always Visible DISCARD Button */}
+          <Button
+            variant="destructive"
+            onClick={() => setShowCancelConfirm(true)}
+            className="flex-1 max-w-[130px] font-mono text-xs tracking-wider h-11"
+            title="Annulla sessione"
+          >
+            <XCircle className="mr-1.5 h-3.5 w-3.5" strokeWidth={2} />
+            DISCARD
+          </Button>
 
-        <Button
-          variant="accent"
-          onClick={() => setShowFinishConfirm(true)}
-          className="w-full font-mono text-xs tracking-wider"
-        >
-          <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" strokeWidth={2} />
-          FINISH
-        </Button>
+          {/* Always Visible FINISH Button */}
+          <Button
+            variant="accent"
+            onClick={() => setShowFinishConfirm(true)}
+            className="flex-1 font-mono text-xs tracking-wider h-11"
+            title="Termina e registra sessione"
+          >
+            <CheckCircle2 className="mr-1.5 h-4 w-4" strokeWidth={2.5} />
+            <span>FINISH ({completedSets}/{totalSets})</span>
+          </Button>
+        </div>
       </div>
 
       {/* Creatable Combobox Modal */}
@@ -312,25 +334,45 @@ export function ActiveWorkout({
           <DialogHeader>
             <DialogTitle>FINISH_WORKOUT_SESSION?</DialogTitle>
             <DialogDescription>
-              Session summary: {completedSets} completed sets across {session.exercises.length} exercises ({totalVolumeKg.toLocaleString()}kg total volume in {formatDuration(elapsedSeconds)}).
+              Riepilogo: {completedSets} serie completate su {session.exercises.length} esercizi ({totalVolumeKg.toLocaleString()}kg in {formatDuration(elapsedSeconds)}).
             </DialogDescription>
           </DialogHeader>
+
+          {/* Option to also save as routine */}
+          <div className="rounded border border-border bg-background p-3">
+            <label className="flex items-center gap-2.5 cursor-pointer text-xs font-mono text-foreground select-none">
+              <input
+                type="checkbox"
+                checked={saveAsRoutineCheck}
+                onChange={(e) => setSaveAsRoutineCheck(e.target.checked)}
+                className="h-4 w-4 rounded border-input bg-card accent-accent cursor-pointer"
+              />
+              <span className="font-semibold">Salva anche come scheda riutilizzabile</span>
+            </label>
+            <p className="text-[10px] font-mono text-muted-foreground mt-1 pl-6">
+              Verrà creata una scheda &quot;{session.title.replace(/_\d{4}-\d{2}-\d{2}/, '')}&quot; con questi esercizi per rieseguirla facilmente in futuro.
+            </p>
+          </div>
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowFinishConfirm(false)}>
-              RESUME
+              CONTINUA
             </Button>
             <Button
               variant="accent"
               onClick={() => {
                 setShowFinishConfirm(false);
-                onFinishSession({
-                  ...session,
-                  status: 'completed',
-                  endedAt: Date.now(),
-                });
+                onFinishSession(
+                  {
+                    ...session,
+                    status: 'completed',
+                    endedAt: Date.now(),
+                  },
+                  saveAsRoutineCheck
+                );
               }}
             >
-              SAVE_AND_LOG
+              SALVA_E_REGISTRA
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -342,12 +384,12 @@ export function ActiveWorkout({
           <DialogHeader>
             <DialogTitle className="text-destructive">DISCARD_WORKOUT_SESSION?</DialogTitle>
             <DialogDescription>
-              This will permanently discard all logged sets in this active workout. This action cannot be undone.
+              Vuoi davvero scartare questo allenamento? Tutte le serie registrate in questa sessione andranno perse in modo permanente.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowCancelConfirm(false)}>
-              KEEP_WORKING
+              CONTINUA_SESSIONE
             </Button>
             <Button
               variant="destructive"
@@ -356,7 +398,7 @@ export function ActiveWorkout({
                 onCancelSession();
               }}
             >
-              CONFIRM_DISCARD
+              CONFERMA_DISCARD
             </Button>
           </DialogFooter>
         </DialogContent>
