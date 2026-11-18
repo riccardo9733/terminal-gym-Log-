@@ -5,6 +5,7 @@ import {
   ChevronUp,
   ChevronDown,
   Bookmark,
+  Timer,
 } from 'lucide-react';
 import {
   Drawer,
@@ -44,6 +45,7 @@ export function RoutineEditorModal({
 }: RoutineEditorModalProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [defaultRestSeconds, setDefaultRestSeconds] = useState(90);
   const [exercises, setExercises] = useState<RoutineExercise[]>([]);
   const [comboboxOpen, setComboboxOpen] = useState(false);
 
@@ -51,10 +53,12 @@ export function RoutineEditorModal({
     if (routineToEdit) {
       setTitle(routineToEdit.title);
       setDescription(routineToEdit.description || '');
+      setDefaultRestSeconds(routineToEdit.defaultRestSeconds ?? 90);
       setExercises(routineToEdit.exercises || []);
     } else {
       setTitle('');
       setDescription('');
+      setDefaultRestSeconds(90);
       setExercises([]);
     }
   }, [routineToEdit, open]);
@@ -72,6 +76,7 @@ export function RoutineEditorModal({
       targetSets: 3,
       defaultReps: 8,
       defaultWeight: userExercises[selected.id]?.bestWeight || 0,
+      restSeconds: undefined, // Inherits routine defaultRestSeconds
     };
     setExercises((prev) => [...prev, newEx]);
   };
@@ -104,6 +109,7 @@ export function RoutineEditorModal({
       id: routineToEdit?.id || generateId(),
       title: title.trim(),
       description: description.trim() || undefined,
+      defaultRestSeconds: defaultRestSeconds > 0 ? defaultRestSeconds : 90,
       exercises,
       createdAt: routineToEdit?.createdAt || Date.now(),
       updatedAt: Date.now(),
@@ -155,10 +161,53 @@ export function RoutineEditorModal({
               />
             </div>
 
+            {/* Default Routine Rest Timer */}
+            <div className="rounded border border-border/70 bg-card/40 p-2.5 space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-semibold flex items-center gap-1.5">
+                  <Timer className="h-3.5 w-3.5 text-warning" />
+                  <span>REST_DEFAULT_SCHEDA</span>
+                </label>
+                <div className="flex items-center gap-1">
+                  <input
+                    type="number"
+                    min="10"
+                    max="600"
+                    step="5"
+                    value={defaultRestSeconds}
+                    onChange={(e) => setDefaultRestSeconds(Math.max(10, parseInt(e.target.value) || 90))}
+                    className="w-14 rounded border border-input bg-background px-1.5 py-0.5 text-right font-mono text-xs font-bold text-warning focus:border-primary focus:outline-none"
+                  />
+                  <span className="text-[10px] font-mono text-muted-foreground font-semibold">SEC</span>
+                </div>
+              </div>
+
+              {/* Quick Preset Chips */}
+              <div className="flex items-center gap-1.5">
+                {[45, 60, 90, 120, 180].map((sec) => (
+                  <button
+                    key={sec}
+                    type="button"
+                    onClick={() => setDefaultRestSeconds(sec)}
+                    className={`flex-1 py-1 rounded text-[10px] font-mono font-semibold transition-all border ${
+                      defaultRestSeconds === sec
+                        ? 'border-warning/80 bg-warning/15 text-warning font-bold'
+                        : 'border-border/60 bg-secondary/50 text-muted-foreground hover:text-foreground hover:border-border'
+                    }`}
+                  >
+                    {sec}s
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Exercises List */}
             <div className="space-y-2 pt-1">
               <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">
                 <span>ESERCIZI IN SCHEDA ({exercises.length})</span>
+                <span className="text-[9px] text-muted-foreground/70 normal-case font-mono">
+                  (Rest vuoto = {defaultRestSeconds}s)
+                </span>
               </div>
 
               {exercises.map((ex, idx) => (
@@ -206,10 +255,10 @@ export function RoutineEditorModal({
                     </div>
                   </div>
 
-                  {/* Target Sets & Reps */}
-                  <div className="grid grid-cols-2 gap-2 text-xs font-mono">
-                    <div className="flex items-center gap-1.5 rounded border border-input bg-card/60 px-2 py-1">
-                      <span className="text-[10px] text-muted-foreground shrink-0">SETS:</span>
+                  {/* Target Sets, Reps & Rest */}
+                  <div className="grid grid-cols-3 gap-1.5 text-xs font-mono">
+                    <div className="flex items-center gap-1 rounded border border-input bg-card/60 px-1.5 py-1">
+                      <span className="text-[9px] text-muted-foreground shrink-0 font-medium">SETS:</span>
                       <input
                         type="number"
                         min="1"
@@ -224,8 +273,8 @@ export function RoutineEditorModal({
                       />
                     </div>
 
-                    <div className="flex items-center gap-1.5 rounded border border-input bg-card/60 px-2 py-1">
-                      <span className="text-[10px] text-muted-foreground shrink-0">REPS:</span>
+                    <div className="flex items-center gap-1 rounded border border-input bg-card/60 px-1.5 py-1">
+                      <span className="text-[9px] text-muted-foreground shrink-0 font-medium">REPS:</span>
                       <input
                         type="number"
                         min="1"
@@ -237,6 +286,34 @@ export function RoutineEditorModal({
                           })
                         }
                         className="w-full bg-transparent text-center font-bold text-foreground focus:outline-none"
+                      />
+                    </div>
+
+                    <div
+                      className={`flex items-center gap-1 rounded border px-1.5 py-1 ${
+                        ex.restSeconds
+                          ? 'border-warning/50 bg-warning/10'
+                          : 'border-input bg-card/60'
+                      }`}
+                      title={ex.restSeconds ? `Recupero specifico: ${ex.restSeconds}s` : `Default scheda: ${defaultRestSeconds}s`}
+                    >
+                      <span className="text-[9px] text-muted-foreground shrink-0 font-medium">REST:</span>
+                      <input
+                        type="number"
+                        min="0"
+                        max="600"
+                        step="5"
+                        placeholder={`${defaultRestSeconds}s`}
+                        value={ex.restSeconds !== undefined ? ex.restSeconds : ''}
+                        onChange={(e) => {
+                          const val = e.target.value === '' ? undefined : parseInt(e.target.value);
+                          handleUpdateExercise(idx, {
+                            restSeconds: val !== undefined && !isNaN(val) && val > 0 ? val : undefined,
+                          });
+                        }}
+                        className={`w-full bg-transparent text-center font-bold focus:outline-none placeholder:text-muted-foreground/40 ${
+                          ex.restSeconds ? 'text-warning' : 'text-foreground'
+                        }`}
                       />
                     </div>
                   </div>

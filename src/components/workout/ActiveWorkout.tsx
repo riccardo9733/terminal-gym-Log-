@@ -56,7 +56,7 @@ export function ActiveWorkout({
   const [tempTitle, setTempTitle] = useState(session.title);
 
   // Rest Timer Hook
-  const restTimer = useRestTimer(90);
+  const restTimer = useRestTimer(session.defaultRestSeconds || 90);
 
   // Live session elapsed clock
   useEffect(() => {
@@ -73,7 +73,8 @@ export function ActiveWorkout({
   // When a set is marked completed, auto-start rest timer & update PR
   const handleSetCompleted = (exercise: WorkoutExercise, set: WorkoutSet) => {
     onRecordSetPR(exercise, set);
-    restTimer.startTimer(90);
+    const targetRest = exercise.restSeconds ?? session.defaultRestSeconds ?? 90;
+    restTimer.startTimer(targetRest);
   };
 
   const handleAddExercise = (selected: {
@@ -87,6 +88,7 @@ export function ActiveWorkout({
       exerciseId: selected.id,
       name: selected.name,
       muscleGroup: selected.muscleGroup,
+      restSeconds: session.defaultRestSeconds || 90,
       sets: [
         {
           id: generateId(),

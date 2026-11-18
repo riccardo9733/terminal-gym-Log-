@@ -25,5 +25,9 @@ dist-ssr
 *.sw?
 
 # Environment
+.env
 .env.local
 .env.*.local
+
+# Firebase cache
+.firebase/

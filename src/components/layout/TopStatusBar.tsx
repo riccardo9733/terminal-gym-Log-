@@ -68,8 +68,10 @@ export function TopStatusBar({
             title="User Profile & Settings"
           >
             <UserIcon className="h-3 w-3 text-primary" strokeWidth={1.75} />
-            <span className="max-w-[65px] truncate">
-              {user ? (user.displayName || user.email?.split('@')[0] || 'usr') : 'usr'}
+            <span className="max-w-[75px] truncate font-semibold">
+              {user
+                ? (user.isAnonymous ? 'guest' : (user.displayName || user.email?.split('@')[0] || 'athlete'))
+                : 'LOGIN'}
             </span>
           </button>
         </div>

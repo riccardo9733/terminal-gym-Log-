@@ -18,6 +18,7 @@ import { HistoryView } from './components/workout/HistoryView';
 import { RoutinesView } from './components/workout/RoutinesView';
 import { StartWorkoutDrawer } from './components/workout/StartWorkoutDrawer';
 import { AuthModal } from './components/workout/AuthModal';
+import { AuthScreen } from './components/workout/AuthScreen';
 import { RoutineEditorModal } from './components/workout/RoutineEditorModal';
 import { Button } from './components/ui/button';
 import { Badge } from './components/ui/badge';
@@ -40,10 +41,12 @@ import { generateId, formatDate, formatDuration, getTodayFormatted } from './lib
 export function App() {
   const {
     user,
+    loading: authLoading,
     isFirebaseConfigured,
     loginWithGoogle,
     loginWithGithub,
-    loginAsGuest,
+    loginWithEmail,
+    registerWithEmail,
     logout,
   } = useAuth();
 
@@ -59,7 +62,7 @@ export function App() {
   const [pendingWritesCount, setPendingWritesCount] = useState(0);
 
   // Sync state & Wake lock
-  const syncState = useNetworkSync(pendingWritesCount);
+  const syncState = useNetworkSync(pendingWritesCount, Boolean(user));
   const { isLocked: isWakeLocked } = useWakeLock(Boolean(activeSession));
 
   const userId = user?.uid || 'demo-user';
@@ -121,6 +124,7 @@ export function App() {
       startedAt: Date.now(),
       exercises: [],
       updatedAt: Date.now(),
+      defaultRestSeconds: 90,
     };
 
     setActiveSession(newSession);
@@ -247,11 +251,13 @@ export function App() {
       title: `${template.title.replace(/_\d{4}-\d{2}-\d{2}/, '')}_${todayStr}`,
       status: 'active',
       startedAt: Date.now(),
+      defaultRestSeconds: template.defaultRestSeconds || 90,
       exercises: template.exercises.map((ex) => ({
         id: generateId(),
         exerciseId: ex.exerciseId,
         name: ex.name,
         muscleGroup: ex.muscleGroup,
+        restSeconds: ex.restSeconds ?? template.defaultRestSeconds ?? 90,
         sets: ex.sets.map((s) => ({
           id: generateId(),
           weight: s.weight,
@@ -300,6 +306,28 @@ export function App() {
         .reduce((sAcc, s) => sAcc + s.weight * s.reps, 0)
     );
   }, 0) || 0;
+
+  if (authLoading) {
+    return (
+      <div className="min-h-[100dvh] max-w-md mx-auto flex flex-col items-center justify-center p-4 bg-background font-mono text-xs">
+        <div className="flex items-center gap-2 text-foreground">
+          <div className="h-2 w-2 rounded-full bg-accent animate-ping" />
+          <span>INITIALIZING_SESSION...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <AuthScreen
+        onLoginEmail={loginWithEmail}
+        onRegisterEmail={registerWithEmail}
+        onLoginGoogle={loginWithGoogle}
+        onLoginGithub={loginWithGithub}
+      />
+    );
+  }
 
   return (
     <MobileAppShell>
@@ -599,9 +627,6 @@ export function App() {
         onOpenChange={setAuthModalOpen}
         user={user}
         isFirebaseConfigured={isFirebaseConfigured}
-        onLoginGoogle={loginWithGoogle}
-        onLoginGithub={loginWithGithub}
-        onLoginGuest={loginAsGuest}
         onLogout={logout}
       />
     </MobileAppShell>

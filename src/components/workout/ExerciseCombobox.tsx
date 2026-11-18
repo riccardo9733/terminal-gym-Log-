@@ -173,11 +173,10 @@ export function ExerciseCombobox({
             <button
               key={opt.value}
               onClick={() => setSelectedMuscle(opt.value)}
-              className={`shrink-0 rounded px-2 py-1 text-[10px] font-mono tracking-wider transition-colors border ${
-                selectedMuscle === opt.value
+              className={`shrink-0 rounded px-2 py-1 text-[10px] font-mono tracking-wider transition-colors border ${selectedMuscle === opt.value
                   ? 'bg-primary text-primary-foreground border-primary'
                   : 'bg-secondary/60 text-muted-foreground border-border hover:text-foreground'
-              }`}
+                }`}
             >
               {opt.label}
             </button>

@@ -12,7 +12,10 @@ export interface SyncState {
   };
 }
 
-export function useNetworkSync(pendingWritesCount: number = 0): SyncState {
+export function useNetworkSync(
+  pendingWritesCount: number = 0,
+  isUserAuthenticated: boolean = false
+): SyncState {
   const [isOnline, setIsOnline] = useState<boolean>(() =>
     typeof navigator !== 'undefined' ? navigator.onLine : true
   );
@@ -44,7 +47,7 @@ export function useNetworkSync(pendingWritesCount: number = 0): SyncState {
 
   let statusBadge: SyncState['statusBadge'];
 
-  if (!isFirebaseConfigured) {
+  if (!isFirebaseConfigured || !isUserAuthenticated) {
     statusBadge = {
       label: 'LOCAL [INDEXEDDB]',
       variant: 'demo',

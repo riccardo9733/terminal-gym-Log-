@@ -6,6 +6,7 @@ import {
   Plus,
   MessageSquare,
   Trophy,
+  Timer,
 } from 'lucide-react';
 import { WorkoutExercise, WorkoutSet } from '../../types/workout';
 import { SetRow } from './SetRow';
@@ -25,6 +26,8 @@ interface ExerciseCardProps {
   onSetCompleted: (exercise: WorkoutExercise, set: WorkoutSet) => void;
 }
 
+const REST_PRESETS = [45, 60, 90, 120, 150, 180];
+
 export function ExerciseCard({
   exerciseIndex,
   totalExercises,
@@ -37,6 +40,15 @@ export function ExerciseCard({
   onSetCompleted,
 }: ExerciseCardProps) {
   const [showNotes, setShowNotes] = useState(Boolean(exercise.notes));
+
+  const handleCycleRest = () => {
+    const current = exercise.restSeconds || 90;
+    const currentIndex = REST_PRESETS.indexOf(current);
+    const next = currentIndex === -1 || currentIndex === REST_PRESETS.length - 1
+      ? REST_PRESETS[0]
+      : REST_PRESETS[currentIndex + 1];
+    onUpdateExercise({ restSeconds: next });
+  };
 
   const handleAddSet = () => {
     // Copy weight and reps from previous set if available
@@ -100,12 +112,24 @@ export function ExerciseCard({
             </Badge>
           </div>
 
-          {bestWeight !== undefined && bestWeight > 0 && (
-            <div className="mt-1 flex items-center gap-1 text-[10px] font-mono text-accent">
-              <Trophy className="h-3 w-3" strokeWidth={2} />
-              <span>PR: {bestWeight}kg</span>
-            </div>
-          )}
+          <div className="mt-1 flex items-center gap-2 flex-wrap">
+            {bestWeight !== undefined && bestWeight > 0 && (
+              <div className="flex items-center gap-1 text-[10px] font-mono text-accent">
+                <Trophy className="h-3 w-3" strokeWidth={2} />
+                <span>PR: {bestWeight}kg</span>
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={handleCycleRest}
+              className="flex items-center gap-1 text-[10px] font-mono text-warning/90 hover:text-warning bg-warning/10 hover:bg-warning/20 border border-warning/30 rounded px-1.5 py-0.5 active:scale-95 transition-all"
+              title="Tocca per cambiare tempo di recupero (45s, 60s, 90s, 120s, 150s, 180s)"
+            >
+              <Timer className="h-3 w-3 text-warning" strokeWidth={2} />
+              <span>REST: {exercise.restSeconds || 90}s</span>
+            </button>
+          </div>
         </div>
 
         {/* Action Controls: Up/Down, Notes, Delete */}

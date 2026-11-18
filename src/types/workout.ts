@@ -24,6 +24,7 @@ export interface WorkoutExercise {
   name: string;            // Display name snapshot
   muscleGroup: MuscleGroup;
   notes?: string;
+  restSeconds?: number;    // Target rest between sets in seconds
   sets: WorkoutSet[];
 }
 
@@ -36,6 +37,7 @@ export interface WorkoutSession {
   exercises: WorkoutExercise[];
   updatedAt: number;
   routineId?: string;      // Associated routine template ID if launched from a routine
+  defaultRestSeconds?: number; // Routine/session-level default rest timer
 }
 
 export interface RoutineExercise {
@@ -45,6 +47,7 @@ export interface RoutineExercise {
   targetSets: number;
   defaultWeight?: number;
   defaultReps?: number;
+  restSeconds?: number;    // Overrides routine defaultRestSeconds if provided
   notes?: string;
 }
 
@@ -52,6 +55,7 @@ export interface WorkoutRoutine {
   id: string;
   title: string;
   description?: string;
+  defaultRestSeconds?: number; // Routine default rest between sets (e.g. 90)
   exercises: RoutineExercise[];
   createdAt: number;
   updatedAt: number;

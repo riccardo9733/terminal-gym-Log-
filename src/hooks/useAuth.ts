@@ -5,45 +5,39 @@ import {
   isFirebaseConfigured,
   loginWithGoogle,
   loginWithGithub,
-  loginAsGuest,
+  loginWithEmail,
+  registerWithEmail,
   logoutUser,
 } from '../lib/firebase';
 import { UserProfile } from '../types/workout';
 
-const DEMO_USER: UserProfile = {
-  uid: 'demo-user',
-  email: 'developer@gym-log.local',
-  displayName: 'dev_runner',
-  isAnonymous: true,
-};
-
 export function useAuth() {
-  const [user, setUser] = useState<UserProfile | null>(() => {
-    if (!isFirebaseConfigured || !auth) {
-      return DEMO_USER;
-    }
-    return null;
-  });
-  const [loading, setLoading] = useState<boolean>(isFirebaseConfigured);
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     if (!isFirebaseConfigured || !auth) {
-      setUser(DEMO_USER);
+      setUser(null);
       setLoading(false);
       return;
     }
 
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser: User | null) => {
-      if (firebaseUser) {
+      if (firebaseUser && !firebaseUser.isAnonymous) {
         setUser({
           uid: firebaseUser.uid,
           email: firebaseUser.email,
-          displayName: firebaseUser.displayName || (firebaseUser.isAnonymous ? 'guest_athlete' : 'athlete'),
-          isAnonymous: firebaseUser.isAnonymous,
+          displayName:
+            firebaseUser.displayName ||
+            firebaseUser.email?.split('@')[0] ||
+            'athlete',
+          isAnonymous: false,
         });
       } else {
-        // Fall back to demo user if not logged in so UI is always interactive
-        setUser(DEMO_USER);
+        if (firebaseUser?.isAnonymous && auth) {
+          logoutUser().catch(() => { });
+        }
+        setUser(null);
       }
       setLoading(false);
     });
@@ -57,7 +51,8 @@ export function useAuth() {
     isFirebaseConfigured,
     loginWithGoogle,
     loginWithGithub,
-    loginAsGuest,
+    loginWithEmail,
+    registerWithEmail,
     logout: logoutUser,
   };
 }

@@ -124,6 +124,9 @@ export function RoutinesView({
                     <Badge variant="outline" className="text-[9px] py-0 px-1 border-muted">
                       {routine.exercises.length} ESERCIZI
                     </Badge>
+                    <Badge variant="outline" className="text-[9px] py-0 px-1 border-warning/40 text-warning font-mono">
+                      REST: {routine.defaultRestSeconds ?? 90}s
+                    </Badge>
                   </div>
 
                   {routine.description && (
@@ -222,6 +225,9 @@ export function RoutinesView({
                           {ex.defaultWeight !== undefined && ex.defaultWeight > 0 && (
                             <span className="text-accent">({ex.defaultWeight}kg)</span>
                           )}
+                          <span className={`text-[10px] font-mono ${ex.restSeconds ? 'text-warning font-bold' : 'text-muted-foreground'}`}>
+                            {ex.restSeconds ? `${ex.restSeconds}s` : `${routine.defaultRestSeconds ?? 90}s`}
+                          </span>
                         </div>
                       </div>
                     ))}

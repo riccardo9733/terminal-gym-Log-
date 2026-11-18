@@ -3,9 +3,7 @@ import {
   User as UserIcon,
   LogOut,
   Terminal,
-  ShieldCheck,
   Check,
-  Copy,
 } from 'lucide-react';
 import {
   Drawer,
@@ -23,9 +21,6 @@ interface AuthModalProps {
   onOpenChange: (open: boolean) => void;
   user: UserProfile | null;
   isFirebaseConfigured: boolean;
-  onLoginGoogle: () => Promise<unknown>;
-  onLoginGithub: () => Promise<unknown>;
-  onLoginGuest: () => Promise<unknown>;
   onLogout: () => Promise<unknown>;
 }
 
@@ -34,38 +29,26 @@ export function AuthModal({
   onOpenChange,
   user,
   isFirebaseConfigured,
-  onLoginGoogle,
-  onLoginGithub,
-  onLoginGuest,
   onLogout,
 }: AuthModalProps) {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
-  const handleAction = async (action: () => Promise<unknown>) => {
+  const handleLogout = async () => {
     setErrorMsg(null);
+    setLoggingOut(true);
     try {
-      await action();
+      await onLogout();
       onOpenChange(false);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setErrorMsg(err.message);
       } else {
-        setErrorMsg('Authentication failed');
+        setErrorMsg('Logout failed');
       }
+    } finally {
+      setLoggingOut(false);
     }
-  };
-
-  const copyEnvSnippet = () => {
-    const text = `VITE_FIREBASE_API_KEY=your_key
-VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=your_project_id
-VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
-VITE_FIREBASE_MESSAGING_SENDER_ID=your_id
-VITE_FIREBASE_APP_ID=your_app_id`;
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -83,15 +66,15 @@ VITE_FIREBASE_APP_ID=your_app_id`;
           <div className="rounded border border-border bg-background p-3 text-xs font-mono">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="flex h-7 w-7 items-center justify-center rounded bg-secondary text-primary border border-border">
+                <div className="flex h-8 w-8 items-center justify-center rounded bg-secondary text-primary border border-border">
                   <UserIcon className="h-4 w-4" strokeWidth={1.75} />
                 </div>
                 <div>
                   <div className="font-bold text-foreground">
-                    {user?.displayName || 'guest_athlete'}
+                    {user?.displayName || 'athlete'}
                   </div>
-                  <div className="text-[10px] text-muted-foreground">
-                    {user?.email || (user?.isAnonymous ? 'ANONYMOUS_SESSION' : 'LOCAL_USER')}
+                  <div className="text-[10px] text-muted-foreground truncate max-w-[190px]">
+                    {user?.email || 'authenticated_athlete'}
                   </div>
                 </div>
               </div>
@@ -111,81 +94,32 @@ VITE_FIREBASE_APP_ID=your_app_id`;
             </div>
           )}
 
-          {/* Auth Providers if Firebase Configured */}
-          {isFirebaseConfigured ? (
-            <div className="space-y-2">
-              <div className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
-                AUTHENTICATION_PROVIDERS
-              </div>
-
-              <Button
-                variant="default"
-                onClick={() => handleAction(onLoginGoogle)}
-                className="w-full justify-start text-xs font-mono gap-2 h-11"
-              >
-                <span className="font-bold">G</span>
-                <span>SIGN_IN_WITH_GOOGLE</span>
-              </Button>
-
-              <Button
-                variant="default"
-                onClick={() => handleAction(onLoginGithub)}
-                className="w-full justify-start text-xs font-mono gap-2 h-11"
-              >
-                <span className="font-bold">#</span>
-                <span>SIGN_IN_WITH_GITHUB</span>
-              </Button>
-
-              <Button
-                variant="secondary"
-                onClick={() => handleAction(onLoginGuest)}
-                className="w-full justify-start text-xs font-mono gap-2 h-11"
-              >
-                <ShieldCheck className="h-4 w-4 text-accent" strokeWidth={2} />
-                <span>CONTINUE_AS_GUEST (ANONYMOUS)</span>
-              </Button>
-
-              {user && (
-                <Button
-                  variant="destructive"
-                  onClick={() => handleAction(onLogout)}
-                  className="w-full mt-2 text-xs font-mono gap-2 h-11"
-                >
-                  <LogOut className="h-4 w-4" strokeWidth={1.75} />
-                  <span>SIGN_OUT</span>
-                </Button>
-              )}
+          {/* Sync & Session Info */}
+          <div className="rounded border border-accent/40 bg-accent/5 p-3 space-y-1.5 text-xs font-mono">
+            <div className="flex items-center gap-1.5 font-bold text-accent">
+              <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
+              <span>AUTHENTICATED // OFFLINE_CACHE_ACTIVE</span>
             </div>
-          ) : (
-            <div className="rounded border border-warning/40 bg-warning/5 p-3 space-y-2 text-xs font-mono">
-              <div className="font-bold text-warning flex items-center gap-1.5">
-                <span>[INFO] RUNNING IN OFFLINE LOCAL MODE</span>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              Your workouts, routines, and personal records are backed up and synced in real-time with Cloud Firestore. Offline edits in the gym sync automatically when back online.
+            </p>
+            {user?.uid && (
+              <div className="pt-1.5 text-[10px] text-muted-foreground border-t border-border/40 truncate">
+                <span className="text-foreground">UID:</span> {user.uid}
               </div>
-              <p className="text-[11px] text-muted-foreground leading-relaxed">
-                Your workouts, sets, and exercise PRs are currently persisted locally in your browser&apos;s IndexedDB / LocalStorage.
-              </p>
-              <p className="text-[11px] text-muted-foreground leading-relaxed">
-                To enable multi-device sync and GitHub/Google OAuth, add your Firebase keys to <code className="text-foreground">.env.local</code>:
-              </p>
-              <button
-                type="button"
-                onClick={copyEnvSnippet}
-                className="mt-1 flex items-center gap-1.5 rounded bg-secondary px-2.5 py-1.5 text-[10px] font-mono text-foreground hover:bg-secondary/80 border border-border transition-colors"
-              >
-                {copied ? (
-                  <>
-                    <Check className="h-3 w-3 text-accent" strokeWidth={2} />
-                    <span>COPIED_TO_CLIPBOARD</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="h-3 w-3 text-muted-foreground" strokeWidth={1.75} />
-                    <span>COPY_.ENV.LOCAL_TEMPLATE</span>
-                  </>
-                )}
-              </button>
-            </div>
-          )}
+            )}
+          </div>
+
+          {/* Logout Button */}
+          <Button
+            variant="destructive"
+            disabled={loggingOut}
+            onClick={handleLogout}
+            className="w-full text-xs font-mono gap-2 h-11"
+          >
+            <LogOut className="h-4 w-4" strokeWidth={1.75} />
+            <span>{loggingOut ? 'SIGNING_OUT...' : 'SIGN_OUT'}</span>
+          </Button>
 
           {/* System Specs info */}
           <div className="border-t border-border/50 pt-2 text-[10px] font-mono text-muted-foreground space-y-1">
