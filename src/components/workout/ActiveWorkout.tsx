@@ -13,6 +13,7 @@ import { WorkoutSession, WorkoutExercise, WorkoutSet, UserExerciseMeta, MuscleGr
 import { ExerciseCard } from './ExerciseCard';
 import { RestTimer } from './RestTimer';
 import { ExerciseCombobox } from './ExerciseCombobox';
+import { ExerciseHistoryDrawer } from './ExerciseHistoryDrawer';
 import { Button } from '../ui/button';
 import {
   Drawer,
@@ -25,10 +26,12 @@ import {
 } from '../ui/drawer';
 import { generateId, formatDuration } from '../../lib/utils';
 import { useRestTimer } from '../../hooks/useRestTimer';
+import { getExerciseHistory, ExerciseHistorySummary } from '../../services/exerciseHistoryService';
 
 interface ActiveWorkoutProps {
   session: WorkoutSession;
   userExercises: Record<string, UserExerciseMeta>;
+  history?: WorkoutSession[];
   onUpdateSession: (updated: WorkoutSession) => void;
   onFinishSession: (session: WorkoutSession, saveAsRoutine?: boolean) => void;
   onCancelSession: () => void;
@@ -40,6 +43,7 @@ interface ActiveWorkoutProps {
 export function ActiveWorkout({
   session,
   userExercises,
+  history,
   onUpdateSession,
   onFinishSession,
   onCancelSession,
@@ -54,6 +58,10 @@ export function ActiveWorkout({
   const [saveAsRoutineCheck, setSaveAsRoutineCheck] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [tempTitle, setTempTitle] = useState(session.title);
+
+  // Exercise History Drawer state
+  const [historySummary, setHistorySummary] = useState<ExerciseHistorySummary | null>(null);
+  const [historyDrawerOpen, setHistoryDrawerOpen] = useState(false);
 
   // Rest Timer Hook
   const restTimer = useRestTimer(session.defaultRestSeconds || 90);
@@ -77,12 +85,30 @@ export function ActiveWorkout({
     restTimer.startTimer(targetRest);
   };
 
+  const handleOpenExerciseHistory = (ex: WorkoutExercise) => {
+    const summary = getExerciseHistory(ex.exerciseId, history || [], ex.name, ex.muscleGroup);
+    setHistorySummary(summary);
+    setHistoryDrawerOpen(true);
+  };
+
   const handleAddExercise = (selected: {
     id: string;
     name: string;
     muscleGroup: MuscleGroup;
     isCustom: boolean;
   }) => {
+    // Look up previous performance history for this exercise
+    const prevHistory = getExerciseHistory(selected.id, history || [], selected.name, selected.muscleGroup);
+    const lastSets = prevHistory.lastPerformanceSets;
+    const initialWeight =
+      lastSets.length > 0 && lastSets[0].weight > 0
+        ? lastSets[0].weight
+        : userExercises[selected.id]?.bestWeight || 0;
+    const initialReps =
+      lastSets.length > 0 && lastSets[0].reps > 0
+        ? lastSets[0].reps
+        : 8;
+
     const newExercise: WorkoutExercise = {
       id: generateId(),
       exerciseId: selected.id,
@@ -92,8 +118,8 @@ export function ActiveWorkout({
       sets: [
         {
           id: generateId(),
-          weight: userExercises[selected.id]?.bestWeight || 0,
-          reps: 8,
+          weight: initialWeight,
+          reps: initialReps,
           completed: false,
         },
       ],
@@ -248,20 +274,30 @@ export function ActiveWorkout({
 
       {/* Exercises List */}
       <div className="space-y-3">
-        {session.exercises.map((exercise, idx) => (
-          <ExerciseCard
-            key={exercise.id}
-            exerciseIndex={idx}
-            totalExercises={session.exercises.length}
-            exercise={exercise}
-            bestWeight={userExercises[exercise.exerciseId]?.bestWeight}
-            onUpdateExercise={(patch) => handleUpdateExercise(idx, patch)}
-            onRemoveExercise={() => handleRemoveExercise(idx)}
-            onMoveUp={() => handleMoveExercise(idx, idx - 1)}
-            onMoveDown={() => handleMoveExercise(idx, idx + 1)}
-            onSetCompleted={handleSetCompleted}
-          />
-        ))}
+        {session.exercises.map((exercise, idx) => {
+          const prevHistory = getExerciseHistory(
+            exercise.exerciseId,
+            history || [],
+            exercise.name,
+            exercise.muscleGroup
+          );
+          return (
+            <ExerciseCard
+              key={exercise.id}
+              exerciseIndex={idx}
+              totalExercises={session.exercises.length}
+              exercise={exercise}
+              bestWeight={userExercises[exercise.exerciseId]?.bestWeight}
+              lastPerformanceSets={prevHistory.lastPerformanceSets}
+              onOpenHistory={() => handleOpenExerciseHistory(exercise)}
+              onUpdateExercise={(patch) => handleUpdateExercise(idx, patch)}
+              onRemoveExercise={() => handleRemoveExercise(idx)}
+              onMoveUp={() => handleMoveExercise(idx, idx - 1)}
+              onMoveDown={() => handleMoveExercise(idx, idx + 1)}
+              onSetCompleted={handleSetCompleted}
+            />
+          );
+        })}
 
         {session.exercises.length === 0 && (
           <div className="rounded border border-dashed border-border bg-card/30 p-8 text-center">
@@ -408,6 +444,13 @@ export function ActiveWorkout({
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
+
+      {/* Exercise History & Progression Drawer */}
+      <ExerciseHistoryDrawer
+        open={historyDrawerOpen}
+        onOpenChange={setHistoryDrawerOpen}
+        historySummary={historySummary}
+      />
     </div>
   );
 }

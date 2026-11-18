@@ -28,8 +28,8 @@ export function SetRow({
         set.completed
           ? 'bg-accent/5 border-accent/30'
           : set.isWarmup
-          ? 'bg-secondary/40 border-dashed border-border'
-          : 'bg-card/40 border-border'
+            ? 'bg-secondary/40 border-dashed border-border'
+            : 'bg-card/40 border-border'
       )}
     >
       {/* Set Number / Warmup Toggle Button */}
@@ -48,9 +48,16 @@ export function SetRow({
       </button>
 
       {/* Previous Performance Hint */}
-      <div className="w-16 shrink-0 text-[11px] font-mono text-muted-foreground text-center tabular-nums">
+      <div
+        className="w-16 shrink-0 text-[11px] font-mono text-muted-foreground text-center tabular-nums select-none"
+        title={
+          prevWeight !== undefined && prevReps !== undefined
+            ? `Prestazione precedente: ${prevWeight}kg × ${prevReps} reps`
+            : 'Nessuna prestazione precedente registrata'
+        }
+      >
         {prevWeight !== undefined && prevReps !== undefined ? (
-          <span>
+          <span className="font-semibold text-muted-foreground/90">
             {prevWeight}kg×{prevReps}
           </span>
         ) : (
@@ -67,14 +74,14 @@ export function SetRow({
             min="0"
             inputMode="decimal"
             enterKeyHint="next"
-            placeholder="0"
+            placeholder={prevWeight !== undefined && prevWeight > 0 ? String(prevWeight) : '0'}
             value={set.weight === 0 ? '' : set.weight}
             onChange={(e) => {
               const val = parseFloat(e.target.value);
               onUpdate({ weight: isNaN(val) ? 0 : val });
             }}
             className={cn(
-              'h-11 w-full rounded border border-input bg-background/80 px-2 text-center font-mono text-base font-semibold text-foreground placeholder:text-muted-foreground/30 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary tabular-nums',
+              'h-11 w-full rounded border border-input bg-background/80 px-2 text-center font-mono text-base font-semibold text-foreground placeholder:text-muted-foreground/35 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary tabular-nums',
               set.completed && 'text-accent'
             )}
           />
@@ -93,14 +100,14 @@ export function SetRow({
             min="0"
             inputMode="numeric"
             enterKeyHint="done"
-            placeholder="0"
+            placeholder={prevReps !== undefined && prevReps > 0 ? String(prevReps) : '0'}
             value={set.reps === 0 ? '' : set.reps}
             onChange={(e) => {
               const val = parseInt(e.target.value, 10);
               onUpdate({ reps: isNaN(val) ? 0 : val });
             }}
             className={cn(
-              'h-11 w-full rounded border border-input bg-background/80 px-2 text-center font-mono text-base font-semibold text-foreground placeholder:text-muted-foreground/30 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary tabular-nums',
+              'h-11 w-full rounded border border-input bg-background/80 px-2 text-center font-mono text-base font-semibold text-foreground placeholder:text-muted-foreground/35 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary tabular-nums',
               set.completed && 'text-accent'
             )}
           />

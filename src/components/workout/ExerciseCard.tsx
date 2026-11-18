@@ -7,6 +7,7 @@ import {
   MessageSquare,
   Trophy,
   Timer,
+  TrendingUp,
 } from 'lucide-react';
 import { WorkoutExercise, WorkoutSet } from '../../types/workout';
 import { SetRow } from './SetRow';
@@ -19,6 +20,8 @@ interface ExerciseCardProps {
   totalExercises: number;
   exercise: WorkoutExercise;
   bestWeight?: number;
+  lastPerformanceSets?: Array<{ weight: number; reps: number; isWarmup?: boolean }>;
+  onOpenHistory?: () => void;
   onUpdateExercise: (updated: Partial<WorkoutExercise>) => void;
   onRemoveExercise: () => void;
   onMoveUp: () => void;
@@ -33,6 +36,8 @@ export function ExerciseCard({
   totalExercises,
   exercise,
   bestWeight,
+  lastPerformanceSets,
+  onOpenHistory,
   onUpdateExercise,
   onRemoveExercise,
   onMoveUp,
@@ -51,12 +56,27 @@ export function ExerciseCard({
   };
 
   const handleAddSet = () => {
-    // Copy weight and reps from previous set if available
+    // Copy weight and reps from previous set if available, or from previous session
+    const nextSetIdx = exercise.sets.length;
     const lastSet = exercise.sets[exercise.sets.length - 1];
+    const prevWorkoutSet = lastPerformanceSets?.[nextSetIdx] || (lastPerformanceSets && lastPerformanceSets.length > 0 ? lastPerformanceSets[lastPerformanceSets.length - 1] : undefined);
+
+    const defaultWeight = lastSet && lastSet.weight > 0
+      ? lastSet.weight
+      : prevWorkoutSet && prevWorkoutSet.weight > 0
+        ? prevWorkoutSet.weight
+        : bestWeight || 0;
+
+    const defaultReps = lastSet && lastSet.reps > 0
+      ? lastSet.reps
+      : prevWorkoutSet && prevWorkoutSet.reps > 0
+        ? prevWorkoutSet.reps
+        : 8;
+
     const newSet: WorkoutSet = {
       id: generateId(),
-      weight: lastSet ? lastSet.weight : 0,
-      reps: lastSet ? lastSet.reps : 0,
+      weight: defaultWeight,
+      reps: defaultReps,
       completed: false,
     };
 
@@ -104,7 +124,12 @@ export function ExerciseCard({
             <span className="text-[11px] font-mono text-muted-foreground font-semibold">
               #{(exerciseIndex + 1).toString().padStart(2, '0')}
             </span>
-            <h3 className="text-sm font-bold font-mono text-foreground tracking-tight truncate">
+            <h3
+              onClick={onOpenHistory}
+              className={`text-sm font-bold font-mono text-foreground tracking-tight truncate ${onOpenHistory ? 'cursor-pointer hover:text-primary transition-colors' : ''
+                }`}
+              title={onOpenHistory ? 'Tocca per aprire lo storico e la progressione' : undefined}
+            >
               {exercise.name}
             </h3>
             <Badge variant="outline" className="text-[9px] py-0 px-1 border-muted">
@@ -118,6 +143,18 @@ export function ExerciseCard({
                 <Trophy className="h-3 w-3" strokeWidth={2} />
                 <span>PR: {bestWeight}kg</span>
               </div>
+            )}
+
+            {onOpenHistory && (
+              <button
+                type="button"
+                onClick={onOpenHistory}
+                className="flex items-center gap-1 text-[10px] font-mono text-primary hover:text-primary bg-primary/10 hover:bg-primary/20 border border-primary/30 rounded px-1.5 py-0.5 active:scale-95 transition-all"
+                title="Visualizza storico serie e progressione"
+              >
+                <TrendingUp className="h-3 w-3 text-primary" strokeWidth={2} />
+                <span>HIST</span>
+              </button>
             )}
 
             <button
@@ -157,11 +194,10 @@ export function ExerciseCard({
           <button
             type="button"
             onClick={() => setShowNotes(!showNotes)}
-            className={`h-8 w-8 flex items-center justify-center rounded transition-colors ${
-              exercise.notes
+            className={`h-8 w-8 flex items-center justify-center rounded transition-colors ${exercise.notes
                 ? 'text-primary'
                 : 'text-muted-foreground hover:text-foreground'
-            }`}
+              }`}
             title="Toggle notes"
           >
             <MessageSquare className="h-3.5 w-3.5" strokeWidth={1.75} />
@@ -204,14 +240,25 @@ export function ExerciseCard({
       {/* Set Rows */}
       <div className="space-y-1.5">
         {exercise.sets.map((set, sIdx) => {
-          const prevSet = exercise.sets[sIdx - 1];
+          // 1. Look up corresponding set from previous workout session
+          const prevWorkoutSet =
+            lastPerformanceSets && lastPerformanceSets.length > 0
+              ? (lastPerformanceSets[sIdx] ?? lastPerformanceSets[lastPerformanceSets.length - 1])
+              : undefined;
+
+          // 2. Fallback to previous set within this current session if no past workout data exists
+          const prevSetInSession = exercise.sets[sIdx - 1];
+
+          const prevWeight = prevWorkoutSet?.weight ?? prevSetInSession?.weight;
+          const prevReps = prevWorkoutSet?.reps ?? prevSetInSession?.reps;
+
           return (
             <SetRow
               key={set.id}
               setIndex={sIdx + 1}
               set={set}
-              prevWeight={prevSet?.weight}
-              prevReps={prevSet?.reps}
+              prevWeight={prevWeight}
+              prevReps={prevReps}
               onUpdate={(patch) => handleUpdateSet(set.id, patch)}
               onToggleComplete={() => handleToggleComplete(set)}
               onDelete={() => handleDeleteSet(set.id)}

@@ -6,11 +6,14 @@ import {
   ChevronDown,
   RotateCcw,
   Trash2,
+  TrendingUp,
 } from 'lucide-react';
-import { WorkoutSession } from '../../types/workout';
+import { WorkoutSession, MuscleGroup } from '../../types/workout';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { formatDate, formatDuration } from '../../lib/utils';
+import { ExerciseHistoryDrawer } from './ExerciseHistoryDrawer';
+import { getExerciseHistory, ExerciseHistorySummary } from '../../services/exerciseHistoryService';
 
 interface HistoryViewProps {
   history: WorkoutSession[];
@@ -24,9 +27,17 @@ export function HistoryView({
   onDeleteWorkout,
 }: HistoryViewProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [selectedExerciseSummary, setSelectedExerciseSummary] = useState<ExerciseHistorySummary | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const toggleExpand = (id: string) => {
     setExpandedId(expandedId === id ? null : id);
+  };
+
+  const handleOpenExerciseHistory = (exerciseId: string, name: string, muscle: MuscleGroup) => {
+    const summary = getExerciseHistory(exerciseId, history, name, muscle);
+    setSelectedExerciseSummary(summary);
+    setDrawerOpen(true);
   };
 
   return (
@@ -118,10 +129,15 @@ export function HistoryView({
                       {workout.exercises.map((ex, eIdx) => (
                         <div
                           key={ex.id || eIdx}
-                          className="rounded border border-border/50 bg-card/60 p-2 text-xs font-mono"
+                          onClick={() => handleOpenExerciseHistory(ex.exerciseId, ex.name, ex.muscleGroup)}
+                          className="rounded border border-border/50 bg-card/60 p-2 text-xs font-mono cursor-pointer hover:border-primary/50 hover:bg-card transition-all"
+                          title="Tocca per visualizzare la progressione completa di questo esercizio"
                         >
                           <div className="flex items-center justify-between font-semibold text-foreground pb-1 border-b border-border/30">
-                            <span>{ex.name}</span>
+                            <span className="hover:text-primary transition-colors flex items-center gap-1">
+                              {ex.name}
+                              <TrendingUp className="h-3 w-3 text-primary/70" />
+                            </span>
                             <span className="text-[10px] text-muted-foreground capitalize">
                               {ex.muscleGroup}
                             </span>
@@ -172,6 +188,13 @@ export function HistoryView({
           })}
         </div>
       )}
+
+      {/* Exercise Progression History Drawer */}
+      <ExerciseHistoryDrawer
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+        historySummary={selectedExerciseSummary}
+      />
     </div>
   );
 }

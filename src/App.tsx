@@ -348,6 +348,7 @@ export function App() {
               <ActiveWorkout
                 session={activeSession}
                 userExercises={userExercises}
+                history={history}
                 onUpdateSession={handleUpdateSession}
                 onFinishSession={handleFinishSession}
                 onCancelSession={handleCancelSession}
