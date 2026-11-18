@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="64" fill="#201d1d" />
+  <rect x="24" y="24" width="464" height="464" rx="40" fill="#272323" stroke="#30d158" stroke-width="8" stroke-opacity="0.3" />
+  
+  <!-- Terminal Header Dots -->
+  <circle cx="70" cy="70" r="10" fill="#ff3b30" />
+  <circle cx="102" cy="70" r="10" fill="#ff9f0a" />
+  <circle cx="134" cy="70" r="10" fill="#30d158" />
+
+  <!-- Code Prompt "// GYM" -->
+  <text x="70" y="150" font-family="JetBrains Mono, monospace" font-size="44" font-weight="700" fill="#007aff">&gt; //_LOG</text>
+
+  <!-- Barbell Graphic -->
+  <g transform="translate(56, 210)" stroke="#fdfcfc" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Bar -->
+    <line x1="40" y1="90" x2="360" y2="90" stroke-width="18" stroke="#9a9898" />
+    
+    <!-- Outer Collars -->
+    <rect x="70" y="55" width="22" height="70" rx="4" fill="#30d158" stroke="none" />
+    <rect x="308" y="55" width="22" height="70" rx="4" fill="#30d158" stroke="none" />
+
+    <!-- Big Plates -->
+    <rect x="96" y="30" width="30" height="120" rx="6" fill="#fdfcfc" stroke="none" />
+    <rect x="274" y="30" width="30" height="120" rx="6" fill="#fdfcfc" stroke="none" />
+
+    <!-- Center knurling marks -->
+    <line x1="160" y1="84" x2="160" y2="96" stroke-width="4" stroke="#201d1d" />
+    <line x1="180" y1="84" x2="180" y2="96" stroke-width="4" stroke="#201d1d" />
+    <line x1="200" y1="84" x2="200" y2="96" stroke-width="4" stroke="#201d1d" />
+    <line x1="220" y1="84" x2="220" y2="96" stroke-width="4" stroke="#201d1d" />
+    <line x1="240" y1="84" x2="240" y2="96" stroke-width="4" stroke="#201d1d" />
+  </g>
+
+  <!-- Terminal Status Footer -->
+  <rect x="70" y="400" width="372" height="42" rx="4" fill="#201d1d" stroke="rgba(253, 252, 252, 0.14)" stroke-width="2" />
+  <text x="88" y="428" font-family="JetBrains Mono, monospace" font-size="20" fill="#30d158" font-weight="600">[SYNCED]</text>
+  <text x="210" y="428" font-family="JetBrains Mono, monospace" font-size="18" fill="#9a9898">100% OFFLINE-READY</text>
+</svg>

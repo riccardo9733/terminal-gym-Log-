@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: #201d1d;
+    --foreground: #fdfcfc;
+    --card: #272323;
+    --card-foreground: #fdfcfc;
+    --popover: #272323;
+    --popover-foreground: #fdfcfc;
+    --primary: #007aff;
+    --primary-foreground: #fdfcfc;
+    --secondary: #2e2a2a;
+    --secondary-foreground: #fdfcfc;
+    --muted: #2e2a2a;
+    --muted-foreground: #9a9898;
+    --accent: #30d158;
+    --accent-foreground: #201d1d;
+    --warning: #ff9f0a;
+    --warning-foreground: #201d1d;
+    --destructive: #ff3b30;
+    --destructive-foreground: #fdfcfc;
+    --border: rgba(253, 252, 252, 0.14);
+    --input: rgba(253, 252, 252, 0.18);
+    --ring: #007aff;
+    --radius: 0.25rem;
+  }
+
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+    font-variant-numeric: tabular-nums;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html,
+  body {
+    background-color: #201d1d;
+    color: #fdfcfc;
+    font-family: 'Berkeley Mono', 'JetBrains Mono', 'Geist Mono', ui-monospace, SFMono-Regular, monospace;
+    overscroll-behavior-y: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100dvh;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Prevent auto-zoom on iOS inputs */
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  /* Custom terminal scrollbars */
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #201d1d;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #2e2a2a;
+    border-radius: 2px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #9a9898;
+  }
+}
