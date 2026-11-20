@@ -24,48 +24,50 @@ export function SetRow({
   return (
     <div
       className={cn(
-        'group flex items-center gap-2 py-1.5 px-2 rounded border transition-colors',
+        'group flex items-center gap-1.5 py-1 px-1.5 rounded border transition-colors',
         set.completed
-          ? 'bg-accent/5 border-accent/30'
+          ? 'bg-secondary/40 border-border'
           : set.isWarmup
-            ? 'bg-secondary/40 border-dashed border-border'
-            : 'bg-card/40 border-border'
+          ? 'bg-secondary/20 border-dashed border-border'
+          : 'bg-card border-border'
       )}
     >
-      {/* Set Number / Warmup Toggle Button */}
+      {/* 1. SET: Set Number / Warmup Toggle Button */}
       <button
         type="button"
         onClick={() => onUpdate({ isWarmup: !set.isWarmup })}
         className={cn(
-          'flex h-8 w-8 shrink-0 items-center justify-center rounded text-xs font-bold font-mono transition-colors border',
+          'flex h-9 w-9 shrink-0 items-center justify-center rounded text-xs font-bold font-mono transition-colors border select-none',
           set.isWarmup
-            ? 'bg-warning/20 text-warning border-warning/50'
-            : 'bg-secondary text-foreground border-border hover:border-primary/50'
+            ? 'bg-warning/15 text-warning border-warning/50'
+            : set.completed
+            ? 'bg-secondary text-foreground border-border'
+            : 'bg-secondary/70 text-muted-foreground border-border hover:border-primary/50 hover:text-foreground'
         )}
-        title={set.isWarmup ? 'Warmup Set (click to make normal)' : 'Normal Set (click to mark warmup)'}
+        title={set.isWarmup ? 'Serie di riscaldamento (clicca per serie normale)' : 'Serie normale (clicca per serie warmup)'}
       >
-        {set.isWarmup ? 'W' : setIndex}
+        {set.isWarmup ? 'W' : String(setIndex).padStart(2, '0')}
       </button>
 
-      {/* Previous Performance Hint */}
+      {/* 2. PREV: Previous Performance Reference */}
       <div
-        className="w-16 shrink-0 text-[11px] font-mono text-muted-foreground text-center tabular-nums select-none"
+        className="w-16 shrink-0 text-[11px] font-mono text-center tabular-nums select-none truncate px-1"
         title={
           prevWeight !== undefined && prevReps !== undefined
             ? `Prestazione precedente: ${prevWeight}kg × ${prevReps} reps`
-            : 'Nessuna prestazione precedente registrata'
+            : 'Nessuna prestazione precedente'
         }
       >
         {prevWeight !== undefined && prevReps !== undefined ? (
-          <span className="font-semibold text-muted-foreground/90">
-            {prevWeight}kg×{prevReps}
+          <span className="font-semibold text-muted-foreground">
+            {prevWeight}×{prevReps}
           </span>
         ) : (
-          <span className="text-muted-foreground/40">—</span>
+          <span className="text-muted-foreground/30">—</span>
         )}
       </div>
 
-      {/* Weight Input (kg) */}
+      {/* 3. KG: Weight Input */}
       <div className="flex-1 min-w-0">
         <div className="relative">
           <input
@@ -80,10 +82,7 @@ export function SetRow({
               const val = parseFloat(e.target.value);
               onUpdate({ weight: isNaN(val) ? 0 : val });
             }}
-            className={cn(
-              'h-11 w-full rounded border border-input bg-background/80 px-2 text-center font-mono text-base font-semibold text-foreground placeholder:text-muted-foreground/35 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary tabular-nums',
-              set.completed && 'text-accent'
-            )}
+            className="h-10 w-full rounded border border-input bg-secondary px-2 pr-6 text-center font-mono text-base font-bold text-foreground placeholder:text-muted-foreground/35 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary tabular-nums"
           />
           <span className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-[9px] font-mono text-muted-foreground">
             kg
@@ -91,7 +90,7 @@ export function SetRow({
         </div>
       </div>
 
-      {/* Reps Input */}
+      {/* 4. REPS: Reps Input */}
       <div className="flex-1 min-w-0">
         <div className="relative">
           <input
@@ -106,10 +105,7 @@ export function SetRow({
               const val = parseInt(e.target.value, 10);
               onUpdate({ reps: isNaN(val) ? 0 : val });
             }}
-            className={cn(
-              'h-11 w-full rounded border border-input bg-background/80 px-2 text-center font-mono text-base font-semibold text-foreground placeholder:text-muted-foreground/35 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary tabular-nums',
-              set.completed && 'text-accent'
-            )}
+            className="h-10 w-full rounded border border-input bg-secondary px-2 pr-6 text-center font-mono text-base font-bold text-foreground placeholder:text-muted-foreground/35 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary tabular-nums"
           />
           <span className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-[9px] font-mono text-muted-foreground">
             reps
@@ -117,20 +113,20 @@ export function SetRow({
         </div>
       </div>
 
-      {/* Completion Toggle Button (Strict 44x44px Touch Target) */}
+      {/* 5. DONE: Tactile Completion Checkbox (Strict 44x44px Touch Target) */}
       <button
         type="button"
         onClick={onToggleComplete}
         className={cn(
-          'flex h-11 w-11 shrink-0 items-center justify-center rounded border transition-all active:scale-95',
+          'flex h-11 w-11 shrink-0 items-center justify-center rounded border transition-all active:scale-95 select-none',
           set.completed
-            ? 'bg-accent border-accent text-background shadow-xs'
-            : 'bg-secondary/70 border-border text-muted-foreground hover:border-accent hover:text-accent'
+            ? 'bg-accent border-accent text-accent-foreground font-black shadow-xs'
+            : 'bg-secondary/80 border-border text-muted-foreground hover:border-accent hover:text-accent'
         )}
-        title={set.completed ? 'Set completed' : 'Mark set as completed'}
+        title={set.completed ? 'Serie completata' : 'Segna serie completata'}
       >
         <Check
-          className={cn('h-5 w-5', set.completed ? 'stroke-[2.5]' : 'stroke-[1.75]')}
+          className={cn('h-5 w-5', set.completed ? 'stroke-[3]' : 'stroke-[1.75]')}
         />
       </button>
 
@@ -138,10 +134,10 @@ export function SetRow({
       <button
         type="button"
         onClick={onDelete}
-        className="flex h-11 w-8 shrink-0 items-center justify-center text-muted-foreground/50 hover:text-destructive active:text-destructive transition-colors"
-        title="Delete set"
+        className="flex h-11 w-7 shrink-0 items-center justify-center text-muted-foreground/30 hover:text-destructive active:text-destructive transition-colors"
+        title="Elimina serie"
       >
-        <Trash2 className="h-4 w-4" strokeWidth={1.75} />
+        <Trash2 className="h-3.5 w-3.5" strokeWidth={1.75} />
       </button>
     </div>
   );

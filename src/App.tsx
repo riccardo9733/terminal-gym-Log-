@@ -5,7 +5,6 @@ import {
   Plus,
   Bookmark,
   ChevronRight,
-  Calendar,
   Clock,
   RotateCcw,
   Dumbbell,
@@ -366,54 +365,132 @@ export function App() {
               />
             ) : (
               /* Idle Workout Launcher Screen */
-              <div className="flex-1 flex flex-col space-y-3.5 px-3 pt-3 pb-24">
-                {/* 1. Date of Today Banner */}
-                <div className="flex items-center justify-between rounded border border-border bg-card/60 px-3 py-2 text-xs font-mono">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Calendar className="h-4 w-4 text-primary" strokeWidth={2} />
-                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground/80">
-                      DATA_DI_OGGI:
+              <div className="flex-1 flex flex-col space-y-3 px-3 pt-3 pb-24">
+                {/* 1. System Telemetry Header */}
+                <div className="flex items-center justify-between rounded border border-border bg-card px-3 py-2 text-xs font-mono">
+                  <div className="flex items-center gap-1.5 text-muted-foreground">
+                    <div className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
+                    <span className="text-[10px] uppercase tracking-wider font-semibold">
+                      &gt; TELEMETRY // TODAY
                     </span>
                   </div>
-                  <span className="font-bold text-foreground tracking-tight text-[11px]">
+                  <span className="font-bold text-foreground tracking-tight text-[11px] tabular-nums">
                     {getTodayFormatted()}
                   </span>
                 </div>
 
-                {/* 2. Hero Action Card: INIZIA UN ALLENAMENTO */}
-                <div className="rounded border border-primary/50 bg-card p-4 space-y-3 shadow-md">
+                {/* 2. Lifetime Telemetry Metrics 2x2 Grid */}
+                <div className="rounded border border-border bg-card p-3 text-xs font-mono space-y-2 shadow-xs">
+                  <div className="flex items-center justify-between text-[10px] font-bold text-muted-foreground uppercase tracking-wider border-b border-border/40 pb-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <TrendingUp className="h-3.5 w-3.5 text-accent" strokeWidth={2} />
+                      <span>LIFETIME_TELEMETRY</span>
+                    </div>
+                    <span className="text-[9px] text-muted-foreground/60">SYS_OK</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 pt-0.5">
+                    <div className="rounded border border-border/50 bg-secondary/60 p-2">
+                      <div className="text-[9px] text-muted-foreground uppercase tracking-wider">SESSIONI_TOTALI</div>
+                      <div className="text-lg font-black font-mono text-foreground tabular-nums mt-0.5">
+                        {totalCompletedWorkouts}
+                      </div>
+                    </div>
+
+                    <div className="rounded border border-border/50 bg-secondary/60 p-2">
+                      <div className="text-[9px] text-muted-foreground uppercase tracking-wider">VOLUME_ACCUMULATO</div>
+                      <div className="text-lg font-black font-mono text-accent tabular-nums mt-0.5">
+                        {totalLifetimeVolume > 1000
+                          ? `${(totalLifetimeVolume / 1000).toFixed(1)}t`
+                          : `${totalLifetimeVolume}kg`}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. Hero Quick Start Card */}
+                <div className="rounded border border-primary/50 bg-card p-4 space-y-3 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-mono uppercase tracking-widest text-accent font-bold">
-                      &gt; PRONTO_PER_L&apos;ALLENAMENTO
+                      &gt; WORKOUT_ENGINE_READY
                     </span>
-                    <span className="text-[10px] font-mono text-muted-foreground">
-                      v0.1.0-mono
-                    </span>
+                    <Badge variant="primary" className="text-[9px] py-0 px-1 font-mono">
+                      v0.2
+                    </Badge>
                   </div>
 
                   <div>
-                    <h1 className="text-xl font-black font-mono tracking-tight text-foreground">
+                    <h1 className="text-lg font-black font-mono tracking-tight text-foreground uppercase">
                       SESSIONE_DI_ALLENAMENTO
                     </h1>
                     <p className="text-xs font-mono text-muted-foreground mt-0.5">
-                      Apri il selettore per scegliere tra le tue schede o avviare una sessione libera.
+                      Scegli tra le tue schede salvate oppure avvia immediatamente una sessione libera.
                     </p>
                   </div>
 
                   {/* Primary Trigger: Opens Bottom Drawer */}
                   <Button
-                    variant="accent"
+                    variant="primary"
                     size="lg"
                     onClick={() => setStartWorkoutDrawerOpen(true)}
-                    className="w-full text-xs font-mono font-bold tracking-wider h-12 shadow-sm"
+                    className="w-full text-xs font-mono font-bold tracking-wider h-12 shadow-xs"
                   >
                     <Play className="mr-2 h-4 w-4 fill-current" strokeWidth={0} />
-                    INIZIA UN ALLENAMENTO &gt;
+                    [▸] INIZIA UN ALLENAMENTO
                   </Button>
                 </div>
 
-                {/* 3. Ultima sessione svolta (se presente) */}
-                <div className="space-y-2">
+                {/* 4. Schede Rapide Strip */}
+                <div className="rounded border border-border bg-card p-3 space-y-2 shadow-xs">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">
+                      <Bookmark className="h-3.5 w-3.5 text-primary" strokeWidth={2} />
+                      <span>SCHEDE_RAPIDE ({routines.length})</span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setCurrentTab('routines')}
+                      className="flex items-center gap-0.5 text-[10px] font-mono text-primary font-bold hover:underline"
+                    >
+                      <span>VEDI_TUTTE</span>
+                      <ChevronRight className="h-3 w-3" />
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+                    {routines.slice(0, 4).map((routine) => (
+                      <button
+                        key={routine.id}
+                        type="button"
+                        onClick={() => handleStartFromRoutine(routine)}
+                        className="shrink-0 rounded border border-border bg-secondary/50 px-2.5 py-1.5 text-left hover:border-accent hover:bg-secondary active:bg-secondary transition-all"
+                      >
+                        <div className="text-xs font-bold font-mono text-foreground truncate max-w-[120px]">
+                          {routine.title}
+                        </div>
+                        <div className="text-[9px] font-mono text-accent font-semibold mt-0.5">
+                          {routine.exercises.length} es. &gt;
+                        </div>
+                      </button>
+                    ))}
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRoutineToEdit(null);
+                        setRoutineEditorOpen(true);
+                      }}
+                      className="shrink-0 flex items-center gap-1 rounded border border-dashed border-border bg-secondary/30 px-2.5 py-2 text-xs font-mono text-primary hover:bg-secondary/60 transition-all"
+                    >
+                      <Plus className="h-3 w-3" />
+                      <span>+ CREA</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* 5. Ultima Sessione Svolta */}
+                <div className="space-y-1.5">
                   <div className="flex items-center justify-between px-0.5 text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">
                     <div className="flex items-center gap-1.5">
                       <Clock className="h-3.5 w-3.5 text-primary" strokeWidth={2} />
@@ -428,7 +505,7 @@ export function App() {
                   </div>
 
                   {lastSession ? (
-                    <div className="rounded border border-border bg-card p-3 space-y-2.5 shadow-2xs">
+                    <div className="rounded border border-border bg-card p-3 space-y-2.5 shadow-xs">
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1.5 flex-wrap">
@@ -436,7 +513,7 @@ export function App() {
                               {lastSession.title}
                             </h3>
                             <Badge variant="outline" className="text-[9px] py-0 px-1 border-muted">
-                              {lastSession.exercises.length} ESERCIZI
+                              {lastSession.exercises.length} ES.
                             </Badge>
                           </div>
 
@@ -468,7 +545,7 @@ export function App() {
                         {lastSession.exercises.slice(0, 3).map((ex, idx) => (
                           <span
                             key={ex.exerciseId + idx}
-                            className="rounded bg-secondary/70 px-1.5 py-0.5 text-[9px] font-mono text-muted-foreground border border-border/40 truncate max-w-[120px]"
+                            className="rounded bg-secondary px-1.5 py-0.5 text-[9px] font-mono text-muted-foreground border border-border/40 truncate max-w-[120px]"
                           >
                             {ex.name}
                           </span>
@@ -491,81 +568,6 @@ export function App() {
                       </p>
                     </div>
                   )}
-                </div>
-
-                {/* 4. Schede rapide shortcut strip */}
-                <div className="rounded border border-border bg-card/60 p-3 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">
-                      <Bookmark className="h-3.5 w-3.5 text-primary" strokeWidth={2} />
-                      <span>LE_TUE_SCHEDE ({routines.length})</span>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => setCurrentTab('routines')}
-                      className="flex items-center gap-0.5 text-[10px] font-mono text-primary font-bold hover:underline"
-                    >
-                      <span>VEDI TUTTE</span>
-                      <ChevronRight className="h-3 w-3" />
-                    </button>
-                  </div>
-
-                  <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-                    {routines.slice(0, 4).map((routine) => (
-                      <button
-                        key={routine.id}
-                        type="button"
-                        onClick={() => handleStartFromRoutine(routine)}
-                        className="shrink-0 rounded border border-border bg-background px-2.5 py-1.5 text-left hover:border-accent hover:bg-secondary/40 active:bg-secondary transition-all"
-                      >
-                        <div className="text-xs font-bold font-mono text-foreground truncate max-w-[120px]">
-                          {routine.title}
-                        </div>
-                        <div className="text-[9px] font-mono text-accent font-semibold mt-0.5">
-                          {routine.exercises.length} es. &gt;
-                        </div>
-                      </button>
-                    ))}
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setRoutineToEdit(null);
-                        setRoutineEditorOpen(true);
-                      }}
-                      className="shrink-0 flex items-center gap-1 rounded border border-dashed border-border bg-background/50 px-2.5 py-2 text-xs font-mono text-primary hover:bg-secondary/40 transition-all"
-                    >
-                      <Plus className="h-3 w-3" />
-                      <span>CREA</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* 5. Metrics Summary Strip */}
-                <div className="rounded border border-border bg-card/50 p-3 text-xs font-mono space-y-2">
-                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                    <TrendingUp className="h-3.5 w-3.5 text-accent" strokeWidth={2} />
-                    <span>LIFETIME_TELEMETRY</span>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3 pt-1">
-                    <div className="rounded border border-border/40 bg-secondary/40 p-2">
-                      <div className="text-[10px] text-muted-foreground">SESSIONI_TOTALI</div>
-                      <div className="text-lg font-black font-mono text-foreground tabular-nums">
-                        {totalCompletedWorkouts}
-                      </div>
-                    </div>
-
-                    <div className="rounded border border-border/40 bg-secondary/40 p-2">
-                      <div className="text-[10px] text-muted-foreground">VOLUME_TOTALE</div>
-                      <div className="text-lg font-black font-mono text-accent tabular-nums">
-                        {totalLifetimeVolume > 1000
-                          ? `${(totalLifetimeVolume / 1000).toFixed(1)}t`
-                          : `${totalLifetimeVolume}kg`}
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
             )}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Calendar,
   Clock,
@@ -7,6 +7,7 @@ import {
   RotateCcw,
   Trash2,
   TrendingUp,
+  Search,
 } from 'lucide-react';
 import { WorkoutSession, MuscleGroup } from '../../types/workout';
 import { Button } from '../ui/button';
@@ -29,6 +30,17 @@ export function HistoryView({
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [selectedExerciseSummary, setSelectedExerciseSummary] = useState<ExerciseHistorySummary | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredHistory = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return history;
+    return history.filter(
+      (w) =>
+        w.title.toLowerCase().includes(q) ||
+        w.exercises.some((e) => e.name.toLowerCase().includes(q) || e.muscleGroup.toLowerCase().includes(q))
+    );
+  }, [history, searchQuery]);
 
   const toggleExpand = (id: string) => {
     setExpandedId(expandedId === id ? null : id);
@@ -42,26 +54,43 @@ export function HistoryView({
 
   return (
     <div className="flex-1 flex flex-col space-y-3 px-3 pt-3 pb-24">
+      {/* Header with Machine Ticker */}
       <div className="flex items-center justify-between border-b border-border/60 pb-2">
         <div className="flex items-center gap-1.5">
           <Calendar className="h-4 w-4 text-primary" strokeWidth={2} />
           <h2 className="text-xs font-bold font-mono tracking-wider uppercase text-foreground">
-            WORKOUT_LOGS ({history.length})
+            &gt; LOGS // ALL SESSIONS ({history.length})
           </h2>
         </div>
       </div>
 
+      {/* Search Filter when history has items */}
+      {history.length > 2 && (
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.75} />
+          <input
+            type="text"
+            placeholder="Cerca per data o esercizio..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="h-9 w-full rounded border border-input bg-card pl-9 pr-3 text-xs font-mono text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+          />
+        </div>
+      )}
+
       {history.length === 0 ? (
-        <div className="rounded border border-dashed border-border bg-card/30 p-8 text-center">
+        <div className="rounded border border-dashed border-border bg-card/30 p-8 text-center space-y-1.5">
           <Calendar className="mx-auto h-8 w-8 text-muted-foreground/30 mb-2" strokeWidth={1.5} />
-          <p className="text-xs font-mono text-muted-foreground">NO_LOGGED_WORKOUTS_YET</p>
-          <p className="text-[11px] font-mono text-muted-foreground/50 mt-1">
-            Complete and finish a workout session to see your logged history here.
+          <p className="text-xs font-mono font-bold text-muted-foreground uppercase">
+            NESSUNA_SESSIONE_REGISTRATA
+          </p>
+          <p className="text-[11px] font-mono text-muted-foreground/60">
+            Concludi e salva un allenamento per consultare qui lo storico dettagliato.
           </p>
         </div>
       ) : (
         <div className="space-y-2.5">
-          {history.map((workout) => {
+          {filteredHistory.map((workout) => {
             const isExpanded = expandedId === workout.id;
             const durationSec = workout.endedAt
               ? Math.max(0, Math.floor((workout.endedAt - workout.startedAt) / 1000))
@@ -106,7 +135,7 @@ export function HistoryView({
                         <Clock className="h-3 w-3 text-primary" strokeWidth={2} />
                         {formatDuration(durationSec)}
                       </span>
-                      <span>{totalSets} sets</span>
+                      <span>{totalSets} serie</span>
                       <span className="text-foreground font-semibold">
                         {totalVolume.toLocaleString()}kg
                       </span>
@@ -122,53 +151,66 @@ export function HistoryView({
                   </div>
                 </div>
 
-                {/* Expanded Details */}
+                {/* Expanded ASCII Tree Details */}
                 {isExpanded && (
-                  <div className="border-t border-border/60 bg-background/50 p-3 space-y-3 animate-in fade-in-50 duration-150">
-                    <div className="space-y-2">
-                      {workout.exercises.map((ex, eIdx) => (
-                        <div
-                          key={ex.id || eIdx}
-                          onClick={() => handleOpenExerciseHistory(ex.exerciseId, ex.name, ex.muscleGroup)}
-                          className="rounded border border-border/50 bg-card/60 p-2 text-xs font-mono cursor-pointer hover:border-primary/50 hover:bg-card transition-all"
-                          title="Tocca per visualizzare la progressione completa di questo esercizio"
-                        >
-                          <div className="flex items-center justify-between font-semibold text-foreground pb-1 border-b border-border/30">
-                            <span className="hover:text-primary transition-colors flex items-center gap-1">
-                              {ex.name}
-                              <TrendingUp className="h-3 w-3 text-primary/70" />
-                            </span>
-                            <span className="text-[10px] text-muted-foreground capitalize">
-                              {ex.muscleGroup}
-                            </span>
-                          </div>
+                  <div className="border-t border-border/60 bg-background/60 p-3 space-y-3 animate-in fade-in duration-150">
+                    <div className="space-y-1.5 font-mono text-xs">
+                      {workout.exercises.map((ex, eIdx) => {
+                        const isLast = eIdx === workout.exercises.length - 1;
+                        const treeSymbol = isLast ? '└─' : '├─';
+                        const completedCount = ex.sets.filter((s) => s.completed).length;
 
-                          <div className="mt-1.5 flex flex-wrap gap-1.5">
-                            {ex.sets
-                              .filter((s) => s.completed)
-                              .map((set, sIdx) => (
-                                <span
-                                  key={set.id || sIdx}
-                                  className="rounded bg-secondary/80 px-1.5 py-0.5 text-[10px] font-mono text-foreground border border-border/40 tabular-nums"
-                                >
-                                  {set.weight}kg × {set.reps}
+                        return (
+                          <div
+                            key={ex.id || eIdx}
+                            className="rounded border border-border/40 bg-card/60 p-2 text-xs font-mono space-y-1.5 hover:border-primary/40 transition-colors"
+                          >
+                            <div
+                              onClick={() => handleOpenExerciseHistory(ex.exerciseId, ex.name, ex.muscleGroup)}
+                              className="flex items-center justify-between font-semibold text-foreground cursor-pointer group"
+                            >
+                              <div className="flex items-center gap-1.5 truncate">
+                                <span className="text-muted-foreground/60 select-none font-bold">
+                                  {treeSymbol}
                                 </span>
-                              ))}
+                                <span className="group-hover:text-primary transition-colors truncate">
+                                  {ex.name}
+                                </span>
+                                <TrendingUp className="h-3 w-3 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+                              </div>
+                              <span className="text-[10px] text-muted-foreground uppercase shrink-0">
+                                {completedCount} serie
+                              </span>
+                            </div>
+
+                            {/* Sets breakdown */}
+                            <div className="flex flex-wrap gap-1 pl-4">
+                              {ex.sets
+                                .filter((s) => s.completed)
+                                .map((set, sIdx) => (
+                                  <span
+                                    key={set.id || sIdx}
+                                    className="rounded bg-secondary px-1.5 py-0.5 text-[10px] font-mono text-foreground border border-border/40 tabular-nums"
+                                  >
+                                    {set.weight}kg × {set.reps}
+                                  </span>
+                                ))}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
 
-                    {/* Actions */}
+                    {/* Actions Bar */}
                     <div className="flex items-center justify-between gap-2 pt-1 border-t border-border/40">
                       <Button
                         variant="destructive"
                         size="sm"
                         onClick={() => onDeleteWorkout(workout.id)}
-                        className="text-[10px] h-8 px-2"
+                        className="text-[10px] h-8 px-2 font-mono"
                       >
                         <Trash2 className="mr-1 h-3 w-3" strokeWidth={1.75} />
-                        DELETE_LOG
+                        ELIMINA
                       </Button>
 
                       <Button
@@ -178,7 +220,7 @@ export function HistoryView({
                         className="text-[10px] h-8 px-3 font-mono font-bold"
                       >
                         <RotateCcw className="mr-1.5 h-3.5 w-3.5" strokeWidth={2} />
-                        USE_AS_TEMPLATE
+                        RIPETI_SESSIONE
                       </Button>
                     </div>
                   </div>

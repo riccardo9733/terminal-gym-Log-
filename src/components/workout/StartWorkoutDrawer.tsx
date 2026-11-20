@@ -48,18 +48,18 @@ export function StartWorkoutDrawer({
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent className="max-h-[88dvh]">
         <DrawerHeader>
-          <DrawerTitle className="flex items-center gap-2">
+          <DrawerTitle className="flex items-center gap-2 font-mono text-sm uppercase">
             <Play className="h-4 w-4 text-accent fill-current" />
-            <span>INIZIA_ALLENAMENTO</span>
+            <span>&gt; INIZIA_ALLENAMENTO</span>
           </DrawerTitle>
-          <DrawerDescription>
-            Seleziona una scheda salvata o avvia una sessione libera vuota.
+          <DrawerDescription className="font-mono text-xs text-muted-foreground">
+            Seleziona una scheda salvata o avvia una sessione libera.
           </DrawerDescription>
         </DrawerHeader>
 
-        <DrawerBody className="space-y-3">
+        <DrawerBody className="space-y-3.5">
           {/* Option 1: Empty workout session */}
-          <div className="rounded border border-primary/40 bg-primary/10 p-3 space-y-2">
+          <div className="rounded border border-primary/50 bg-secondary/30 p-3 space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-mono uppercase tracking-wider text-primary font-bold">
                 [SESSIONE_LIBERA]
@@ -73,9 +73,9 @@ export function StartWorkoutDrawer({
             </p>
             <Button
               variant="primary"
-              size="sm"
+              size="default"
               onClick={handleStartEmpty}
-              className="w-full text-xs font-mono font-bold tracking-wider h-10"
+              className="w-full text-xs font-mono font-bold tracking-wider h-11"
             >
               <Play className="mr-1.5 h-3.5 w-3.5 fill-current" />
               AVVIA_SESSIONE_LIBERA
@@ -100,17 +100,13 @@ export function StartWorkoutDrawer({
               </button>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 max-h-[42dvh] overflow-y-auto no-scrollbar">
               {routines.map((routine) => {
-                const muscleGroups = Array.from(
-                  new Set(routine.exercises.map((e) => e.muscleGroup))
-                );
-
                 return (
                   <div
                     key={routine.id}
                     onClick={() => handleStartRoutine(routine)}
-                    className="cursor-pointer rounded border border-border bg-card/80 p-3 hover:border-accent hover:bg-secondary/40 active:bg-secondary transition-all space-y-2 group"
+                    className="cursor-pointer rounded border border-border bg-card p-3 hover:border-accent hover:bg-secondary/40 active:bg-secondary transition-all space-y-2 group"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
@@ -119,7 +115,7 @@ export function StartWorkoutDrawer({
                             {routine.title}
                           </h4>
                           <span className="text-[10px] font-mono text-muted-foreground">
-                            • {routine.exercises.length} esercizi
+                            • {routine.exercises.length} es.
                           </span>
                         </div>
 
@@ -138,39 +134,17 @@ export function StartWorkoutDrawer({
                       </div>
 
                       <div className="flex items-center gap-1 text-xs font-mono font-bold text-accent shrink-0 pt-0.5">
-                        <span className="hidden sm:inline">AVVIA</span>
+                        <span>AVVIA</span>
                         <ChevronRight className="h-4 w-4" />
                       </div>
-                    </div>
-
-                    <div className="flex flex-wrap gap-1">
-                      {muscleGroups.map((mg) => (
-                        <span
-                          key={mg}
-                          className="rounded bg-secondary px-1.5 py-0.5 text-[9px] font-mono text-muted-foreground capitalize border border-border/40"
-                        >
-                          {mg}
-                        </span>
-                      ))}
                     </div>
                   </div>
                 );
               })}
 
               {routines.length === 0 && (
-                <div className="rounded border border-dashed border-border bg-card/30 p-6 text-center space-y-2">
-                  <p className="text-xs font-mono text-muted-foreground">
-                    Non hai ancora creato nessuna scheda.
-                  </p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleCreate}
-                    className="text-xs font-mono border-dashed"
-                  >
-                    <Plus className="mr-1 h-3 w-3" />
-                    CREA_LA_PRIMA_SCHEDA
-                  </Button>
+                <div className="rounded border border-dashed border-border p-4 text-center text-xs font-mono text-muted-foreground">
+                  Nessuna scheda creata finora.
                 </div>
               )}
             </div>
