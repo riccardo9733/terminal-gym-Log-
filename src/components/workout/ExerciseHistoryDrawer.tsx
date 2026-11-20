@@ -11,6 +11,8 @@ import { Badge } from '../ui/badge';
 import { formatDate } from '../../lib/utils';
 import { ExerciseHistorySummary } from '../../services/exerciseHistoryService';
 import { generateAsciiSparkline, formatDelta, formatTonnage } from '../../lib/asciiStats';
+import { MUSCLE_GROUPS_IT } from '../../data/default-exercises';
+import { MuscleGroup } from '../../types/workout';
 
 interface ExerciseHistoryDrawerProps {
   open: boolean;
@@ -58,8 +60,8 @@ export function ExerciseHistoryDrawer({
             <DrawerTitle className="text-xs font-bold font-mono tracking-tight text-foreground truncate">
               {exerciseName}
             </DrawerTitle>
-            <Badge variant="outline" className="text-[9px]">
-              {muscleGroup.toUpperCase()}
+            <Badge variant="outline" className="text-[9px] uppercase font-bold">
+              {MUSCLE_GROUPS_IT[muscleGroup as MuscleGroup] || muscleGroup}
             </Badge>
           </div>
           <p className="text-[10px] font-mono text-muted-foreground mt-0.5">

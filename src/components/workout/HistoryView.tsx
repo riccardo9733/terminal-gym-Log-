@@ -16,6 +16,7 @@ import {
   getActivityHeatmap,
 } from '../../services/statsService';
 import { formatDelta, formatTonnage } from '../../lib/asciiStats';
+import { MUSCLE_GROUPS_IT } from '../../data/default-exercises';
 
 interface HistoryViewProps {
   history: WorkoutSession[];
@@ -171,8 +172,8 @@ export function HistoryView({
               <div className="space-y-1 font-mono text-[10px] pt-0.5">
                 {weeklyTelemetry.muscleDistribution.slice(0, 5).map((item) => (
                   <div key={item.muscleGroup} className="flex items-center justify-between text-muted-foreground">
-                    <span className="w-14 truncate uppercase text-foreground/90 font-semibold text-[9px]">
-                      {item.muscleGroup}
+                    <span className="w-16 truncate uppercase text-foreground/90 font-semibold text-[9px]">
+                      {MUSCLE_GROUPS_IT[item.muscleGroup as MuscleGroup] || item.muscleGroup}
                     </span>
                     <span className="text-accent font-black tracking-widest text-[9px] select-none mx-2">
                       {item.asciiBar}
@@ -362,7 +363,7 @@ export function HistoryView({
                           <span className="text-accent/60 mr-1.5 select-none">{prefix}</span>
                           <span className="text-foreground">{ex.name}</span>
                           <span className="text-muted-foreground/60 text-[10px] ml-1">
-                            ({ex.muscleGroup})
+                            ({MUSCLE_GROUPS_IT[ex.muscleGroup as MuscleGroup] || ex.muscleGroup})
                           </span>
                         </div>
                       );

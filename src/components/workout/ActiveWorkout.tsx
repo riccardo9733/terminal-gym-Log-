@@ -288,7 +288,7 @@ export function ActiveWorkout({
               className="w-full font-mono text-xs font-black tracking-wider h-11"
               title="Termina e registra sessione"
             >
-              <span>[ ✓ FINISH SESSION ({completedSets}/{totalSets}) ↵ ]</span>
+              <span>[ ✓ CONCLUDI SESSIONE ({completedSets}/{totalSets}) ↵ ]</span>
             </Button>
           </div>
         </div>
@@ -315,7 +315,7 @@ export function ActiveWorkout({
       <Drawer open={showFinishConfirm} onOpenChange={setShowFinishConfirm}>
         <DrawerContent className="max-h-[85dvh]">
           <DrawerHeader>
-            <DrawerTitle>FINISH_WORKOUT_SESSION?</DrawerTitle>
+            <DrawerTitle>&gt; CONCLUDERE_SESSIONE_DI_ALLENAMENTO?</DrawerTitle>
             <DrawerDescription>
               Riepilogo: {completedSets} serie completate su {session.exercises.length} esercizi ({totalVolumeKg.toLocaleString()}kg in {formatDuration(elapsedSeconds)}).
             </DrawerDescription>
@@ -367,7 +367,7 @@ export function ActiveWorkout({
       <Drawer open={showCancelConfirm} onOpenChange={setShowCancelConfirm}>
         <DrawerContent className="max-h-[85dvh]">
           <DrawerHeader>
-            <DrawerTitle className="text-destructive">DISCARD_WORKOUT_SESSION?</DrawerTitle>
+            <DrawerTitle className="text-destructive">&gt; ANNULLARE_LA_SESSIONE_ATTIVA?</DrawerTitle>
             <DrawerDescription>
               Attenzione: tutte le serie registrate in questa sessione andranno perse in modo irreversibile.
             </DrawerDescription>
@@ -383,7 +383,7 @@ export function ActiveWorkout({
                 onCancelSession();
               }}
             >
-              [ ✕ CONFERMA_DISCARD ]
+              [ ✕ CONFERMA_ANNULLAMENTO ↵ ]
             </Button>
           </DrawerFooter>
         </DrawerContent>

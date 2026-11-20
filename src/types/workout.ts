@@ -82,6 +82,7 @@ export interface UserExerciseMeta {
 export interface DefaultExercise {
   id: string;
   name: string;
+  nameIt?: string;         // Italian localized display name
   muscleGroup: MuscleGroup;
   aliases?: string[];
 }

@@ -22,6 +22,7 @@ import {
   DrawerFooter,
 } from '../ui/drawer';
 import { generateId, cn } from '../../lib/utils';
+import { MUSCLE_GROUPS_IT } from '../../data/default-exercises';
 
 interface ExerciseCardProps {
   exerciseIndex: number;
@@ -161,8 +162,8 @@ export function ExerciseCard({
             >
               {exercise.name}
             </span>
-            <Badge variant="outline" className="text-[9px]">
-              {exercise.muscleGroup.toUpperCase()}
+            <Badge variant="outline" className="text-[9px] uppercase font-bold">
+              {MUSCLE_GROUPS_IT[exercise.muscleGroup] || exercise.muscleGroup}
             </Badge>
           </div>
         }

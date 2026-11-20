@@ -6,7 +6,7 @@ import {
   Copy,
   Trash2,
 } from 'lucide-react';
-import { WorkoutRoutine, WorkoutSession } from '../../types/workout';
+import { WorkoutRoutine, WorkoutSession, MuscleGroup } from '../../types/workout';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { AsciiBox } from '../ui/ascii-box';
@@ -22,6 +22,7 @@ import {
 import { generateId } from '../../lib/utils';
 import { getRoutineAnalytics, RoutineAnalytics } from '../../services/statsService';
 import { formatDelta } from '../../lib/asciiStats';
+import { MUSCLE_GROUPS_IT } from '../../data/default-exercises';
 
 interface RoutinesViewProps {
   routines: WorkoutRoutine[];
@@ -222,14 +223,17 @@ export function RoutinesView({
                   <span className="text-muted-foreground text-[8px] uppercase font-bold mr-1 select-none">
                     SPLIT:
                   </span>
-                  {analytics.plannedMuscleSplit.map((split) => (
-                    <span
-                      key={split.muscleGroup}
-                      className="border border-border/80 bg-secondary/40 px-1 py-0.5 rounded-[2px] text-muted-foreground"
-                    >
-                      <strong className="text-foreground uppercase">{split.muscleGroup}</strong> [{split.sets}s]
-                    </span>
-                  ))}
+                  {analytics.plannedMuscleSplit.map((split) => {
+                    const muscleLabel = MUSCLE_GROUPS_IT[split.muscleGroup as MuscleGroup] || split.muscleGroup;
+                    return (
+                      <span
+                        key={split.muscleGroup}
+                        className="border border-border/80 bg-secondary/40 px-1 py-0.5 rounded-[2px] text-muted-foreground"
+                      >
+                        <strong className="text-foreground uppercase">{muscleLabel}</strong> [{split.sets}s]
+                      </span>
+                    );
+                  })}
                 </div>
               )}
 
@@ -258,13 +262,14 @@ export function RoutinesView({
                     {routine.exercises.map((ex, eIdx, arr) => {
                       const isLast = eIdx === arr.length - 1;
                       const prefix = isLast ? '└─' : '├─';
+                      const muscleLabel = MUSCLE_GROUPS_IT[ex.muscleGroup as MuscleGroup] || ex.muscleGroup;
                       return (
                         <div key={ex.exerciseId + eIdx} className="flex items-center justify-between text-[11px] truncate">
                           <div className="truncate pr-2">
                             <span className="text-accent mr-1.5 select-none">{prefix}</span>
                             <span className="text-foreground font-semibold">{ex.name}</span>
                             <span className="text-muted-foreground/60 text-[10px] ml-1">
-                              ({ex.muscleGroup})
+                              ({muscleLabel})
                             </span>
                           </div>
                           <div className="shrink-0 tabular-nums text-[10px] text-muted-foreground">
