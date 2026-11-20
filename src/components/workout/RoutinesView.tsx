@@ -1,13 +1,12 @@
 import { useState, useMemo } from 'react';
 import {
-  Clock,
   ChevronRight,
   ChevronDown,
   Edit2,
   Copy,
   Trash2,
 } from 'lucide-react';
-import { WorkoutRoutine } from '../../types/workout';
+import { WorkoutRoutine, WorkoutSession } from '../../types/workout';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { AsciiBox } from '../ui/ascii-box';
@@ -20,10 +19,13 @@ import {
   DrawerBody,
   DrawerFooter,
 } from '../ui/drawer';
-import { formatShortDate, generateId } from '../../lib/utils';
+import { generateId } from '../../lib/utils';
+import { getRoutineAnalytics, RoutineAnalytics } from '../../services/statsService';
+import { formatDelta } from '../../lib/asciiStats';
 
 interface RoutinesViewProps {
   routines: WorkoutRoutine[];
+  history?: WorkoutSession[];
   onStartRoutine: (routine: WorkoutRoutine) => void;
   onEditRoutine: (routine: WorkoutRoutine) => void;
   onDeleteRoutine: (routineId: string) => void;
@@ -33,6 +35,7 @@ interface RoutinesViewProps {
 
 export function RoutinesView({
   routines,
+  history = [],
   onStartRoutine,
   onEditRoutine,
   onDeleteRoutine,
@@ -58,6 +61,15 @@ export function RoutinesView({
     );
   }, [routines, searchQuery]);
 
+  // Compute analytics map for routines
+  const analyticsMap = useMemo(() => {
+    const map: Record<string, RoutineAnalytics> = {};
+    routines.forEach((r) => {
+      map[r.id] = getRoutineAnalytics(r, history);
+    });
+    return map;
+  }, [routines, history]);
+
   const handleDuplicate = (routine: WorkoutRoutine) => {
     const cloned: WorkoutRoutine = {
       ...routine,
@@ -69,6 +81,8 @@ export function RoutinesView({
     };
     onSaveRoutine(cloned);
   };
+
+  const selectedTargetAnalytics = routineOptionsTarget ? analyticsMap[routineOptionsTarget.id] : null;
 
   return (
     <div className="flex-1 flex flex-col space-y-3 px-3 pt-3 pb-24 font-mono">
@@ -129,10 +143,8 @@ export function RoutinesView({
       {/* Routines Blueprint Stack */}
       <div className="space-y-3">
         {filteredRoutines.map((routine, idx) => {
-          const muscleGroups = Array.from(
-            new Set(routine.exercises.map((e) => e.muscleGroup))
-          );
           const isExpanded = Boolean(expandedRoutineIds[routine.id]);
+          const analytics = analyticsMap[routine.id];
 
           return (
             <AsciiBox
@@ -160,7 +172,7 @@ export function RoutinesView({
                   [···]
                 </button>
               }
-              className="space-y-3 hover:border-accent/60 transition-colors"
+              className="space-y-2.5 hover:border-accent/60 transition-colors"
             >
               {routine.description && (
                 <p className="text-xs font-mono text-muted-foreground line-clamp-2">
@@ -168,33 +180,61 @@ export function RoutinesView({
                 </p>
               )}
 
-              {/* Telemetry info & Muscle tags */}
-              <div className="flex items-center justify-between flex-wrap gap-2 text-[10px] font-mono text-muted-foreground">
-                <div className="flex items-center gap-3">
+              {/* Blueprint Telemetry bar */}
+              <div className="flex items-center justify-between flex-wrap gap-2 text-[10px] font-mono text-muted-foreground bg-secondary/20 p-1.5 rounded-[2px]">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-foreground font-semibold">
+                    {analytics?.plannedSetsTotal || 0} serie target
+                  </span>
                   <span>REST: {routine.defaultRestSeconds ?? 90}s</span>
-                  {routine.lastPerformedAt && (
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3 w-3 text-accent" strokeWidth={2} />
-                      <span className="tabular-nums">{formatShortDate(routine.lastPerformedAt)}</span>
-                    </span>
-                  )}
                 </div>
 
-                <div className="flex flex-wrap gap-1">
-                  {muscleGroups.map((mg) => (
-                    <Badge
-                      key={mg}
-                      variant="outline"
-                      className="text-[9px] border-border text-muted-foreground"
-                    >
-                      {mg.toUpperCase()}
-                    </Badge>
-                  ))}
-                </div>
+                {analytics && analytics.executionCount > 0 ? (
+                  <div className="flex items-center gap-2 text-[10px] tabular-nums">
+                    <span>EXEC: <strong className="text-foreground">{analytics.executionCount}x</strong></span>
+                    {analytics.avgDurationMinutes > 0 && (
+                      <span>DURATA: ~{analytics.avgDurationMinutes}m</span>
+                    )}
+                    {analytics.tonnageProgressionDeltaPercent !== undefined && (
+                      <span
+                        className={`font-bold ${
+                          analytics.tonnageProgressionDeltaPercent > 0
+                            ? 'text-accent'
+                            : analytics.tonnageProgressionDeltaPercent < 0
+                            ? 'text-destructive'
+                            : 'text-muted-foreground'
+                        }`}
+                      >
+                        {formatDelta(analytics.tonnageProgressionDeltaPercent, { isPercent: true }).text}
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <span className="text-[9px] text-muted-foreground/60">
+                    NON ANCORA ESEGUITA
+                  </span>
+                )}
               </div>
 
+              {/* Muscle distribution compact pill list */}
+              {analytics && analytics.plannedMuscleSplit.length > 0 && (
+                <div className="flex flex-wrap gap-1 items-center text-[9px] font-mono">
+                  <span className="text-muted-foreground text-[8px] uppercase font-bold mr-1 select-none">
+                    SPLIT:
+                  </span>
+                  {analytics.plannedMuscleSplit.map((split) => (
+                    <span
+                      key={split.muscleGroup}
+                      className="border border-border/80 bg-secondary/40 px-1 py-0.5 rounded-[2px] text-muted-foreground"
+                    >
+                      <strong className="text-foreground uppercase">{split.muscleGroup}</strong> [{split.sets}s]
+                    </span>
+                  ))}
+                </div>
+              )}
+
               {/* Accordion: ASCII tree of exercises */}
-              <div className="border-t border-border/50 pt-2 space-y-1">
+              <div className="border-t border-border/50 pt-1.5 space-y-1">
                 <button
                   type="button"
                   onClick={() => toggleExpand(routine.id)}
@@ -203,12 +243,12 @@ export function RoutinesView({
                   {isExpanded ? (
                     <>
                       <ChevronDown className="h-3.5 w-3.5" />
-                      <span>▾ Nascondi esercizi e serie target</span>
+                      <span>▾ Nascondi dettagli esercizi</span>
                     </>
                   ) : (
                     <>
                       <ChevronRight className="h-3.5 w-3.5" />
-                      <span>▸ Visualizza esercizi e serie target</span>
+                      <span>▸ Visualizza dettagli ({routine.exercises.length} movimenti)</span>
                     </>
                   )}
                 </button>
@@ -255,12 +295,12 @@ export function RoutinesView({
         })}
       </div>
 
-      {/* Routine Options Drawer */}
+      {/* Routine Detail & Options Bottom Drawer */}
       <Drawer
         open={Boolean(routineOptionsTarget)}
         onOpenChange={(open) => !open && setRoutineOptionsTarget(null)}
       >
-        <DrawerContent className="max-h-[85dvh]">
+        <DrawerContent className="max-h-[85dvh] font-mono">
           <DrawerHeader>
             <DrawerTitle className="font-mono text-sm uppercase">
               {routineOptionsTarget?.title} // OPZIONI
@@ -270,54 +310,113 @@ export function RoutinesView({
             </DrawerDescription>
           </DrawerHeader>
 
-          <DrawerBody className="space-y-2 font-mono">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                if (routineOptionsTarget) {
-                  const target = routineOptionsTarget;
-                  setRoutineOptionsTarget(null);
-                  onEditRoutine(target);
-                }
-              }}
-              className="w-full h-11 text-xs justify-start"
-            >
-              <Edit2 className="mr-2 h-4 w-4" />
-              [ MODIFICA SCHEDA ]
-            </Button>
+          <DrawerBody className="space-y-3 font-mono">
+            {/* Telemetry specs pane */}
+            {selectedTargetAnalytics && (
+              <div className="border border-border bg-secondary/20 p-2.5 rounded-[2px] space-y-2">
+                <div className="text-[10px] font-mono font-bold uppercase text-foreground border-b border-border/40 pb-1">
+                  ┌─[ TELEMETRIA SCHEDA // BLUEPRINT METRICS ]
+                </div>
 
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                if (routineOptionsTarget) {
-                  const target = routineOptionsTarget;
-                  setRoutineOptionsTarget(null);
-                  handleDuplicate(target);
-                }
-              }}
-              className="w-full h-11 text-xs justify-start"
-            >
-              <Copy className="mr-2 h-4 w-4" />
-              [ DUPLICA SCHEDA ]
-            </Button>
+                <div className="grid grid-cols-3 gap-1.5 text-center text-[10px]">
+                  <div className="border border-border bg-card p-1.5 rounded-[2px]">
+                    <div className="text-[8px] text-muted-foreground uppercase">SERIE TOT</div>
+                    <div className="text-xs font-black text-foreground tabular-nums">
+                      {selectedTargetAnalytics.plannedSetsTotal}
+                    </div>
+                  </div>
+                  <div className="border border-border bg-card p-1.5 rounded-[2px]">
+                    <div className="text-[8px] text-muted-foreground uppercase">ESECUZIONI</div>
+                    <div className="text-xs font-black text-foreground tabular-nums">
+                      {selectedTargetAnalytics.executionCount}x
+                    </div>
+                  </div>
+                  <div className="border border-border bg-card p-1.5 rounded-[2px]">
+                    <div className="text-[8px] text-muted-foreground uppercase">DURATA MED</div>
+                    <div className="text-xs font-black text-foreground tabular-nums">
+                      {selectedTargetAnalytics.avgDurationMinutes > 0
+                        ? `${selectedTargetAnalytics.avgDurationMinutes}m`
+                        : '—'}
+                    </div>
+                  </div>
+                </div>
 
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={() => {
-                if (routineOptionsTarget) {
-                  const targetId = routineOptionsTarget.id;
-                  setRoutineOptionsTarget(null);
-                  onDeleteRoutine(targetId);
-                }
-              }}
-              className="w-full h-11 text-xs justify-start text-destructive hover:bg-destructive/10"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              [ ✕ ELIMINA SCHEDA ]
-            </Button>
+                {/* Muscle Split Bars */}
+                {selectedTargetAnalytics.plannedMuscleSplit.length > 0 && (
+                  <div className="space-y-1 pt-1">
+                    <div className="text-[9px] text-muted-foreground font-bold uppercase">
+                      DISTRETTO MUSCOLARE TARGET
+                    </div>
+                    <div className="space-y-1 text-[10px]">
+                      {selectedTargetAnalytics.plannedMuscleSplit.map((s) => (
+                        <div key={s.muscleGroup} className="flex items-center justify-between">
+                          <span className="w-16 truncate uppercase text-foreground font-semibold text-[9px]">
+                            {s.muscleGroup}
+                          </span>
+                          <span className="text-accent font-black tracking-widest text-[9px] mx-1">
+                            {s.asciiBar}
+                          </span>
+                          <span className="text-[9px] tabular-nums font-bold text-foreground">
+                            {s.sets} serie
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Actions list */}
+            <div className="space-y-1.5 pt-1">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  if (routineOptionsTarget) {
+                    const target = routineOptionsTarget;
+                    setRoutineOptionsTarget(null);
+                    onEditRoutine(target);
+                  }
+                }}
+                className="w-full h-11 text-xs justify-start"
+              >
+                <Edit2 className="mr-2 h-4 w-4" />
+                [ MODIFICA SCHEDA ]
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  if (routineOptionsTarget) {
+                    const target = routineOptionsTarget;
+                    setRoutineOptionsTarget(null);
+                    handleDuplicate(target);
+                  }
+                }}
+                className="w-full h-11 text-xs justify-start"
+              >
+                <Copy className="mr-2 h-4 w-4" />
+                [ DUPLICA SCHEDA ]
+              </Button>
+
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={() => {
+                  if (routineOptionsTarget) {
+                    const targetId = routineOptionsTarget.id;
+                    setRoutineOptionsTarget(null);
+                    onDeleteRoutine(targetId);
+                  }
+                }}
+                className="w-full h-11 text-xs justify-start text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                [ ✕ ELIMINA SCHEDA ]
+              </Button>
+            </div>
           </DrawerBody>
 
           <DrawerFooter>

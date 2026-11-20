@@ -19,6 +19,23 @@ export interface ExerciseSessionLog {
   isPR?: boolean;
 }
 
+export interface RepRecords {
+  oneRM: number;
+  threeRM: number;
+  fiveRM: number;
+  eightRM: number;
+  tenRM: number;
+}
+
+export interface DeltaVsPrevious {
+  weightDelta: number;
+  weightPercent: number;
+  volumeDelta: number;
+  volumePercent: number;
+  oneRMDelta: number;
+  oneRMPercent: number;
+}
+
 export interface ExerciseHistorySummary {
   exerciseId: string;
   exerciseName: string;
@@ -29,6 +46,12 @@ export interface ExerciseHistorySummary {
   estimatedMaxOneRepMax: number;
   sessionLogs: ExerciseSessionLog[]; // sorted newest first
   lastPerformanceSets: ExerciseSetHistory[]; // sets from the most recent completed session
+  // Advanced Telemetry
+  repRecords: RepRecords;
+  deltaVsPrevious: DeltaVsPrevious | null;
+  sparklineValues: number[]; // chronologically ordered 1RM for trend chart (oldest to newest)
+  daysSinceLast: number | null; // days since last execution
+  avgRestDays: number | null; // average days between sessions
 }
 
 /**
@@ -64,6 +87,14 @@ export function getExerciseHistory(
   let personalRecord = 0;
   let estimatedMax1RM = 0;
 
+  const repRecords: RepRecords = {
+    oneRM: 0,
+    threeRM: 0,
+    fiveRM: 0,
+    eightRM: 0,
+    tenRM: 0,
+  };
+
   const sessionLogs: ExerciseSessionLog[] = [];
 
   for (const session of matchingSessions) {
@@ -98,6 +129,13 @@ export function getExerciseHistory(
         if (s.weight > personalRecord) {
           personalRecord = s.weight;
         }
+
+        // Rep Records calculation (weight lifted for >= target reps)
+        if (s.reps >= 1 && s.weight > repRecords.oneRM) repRecords.oneRM = s.weight;
+        if (s.reps >= 3 && s.weight > repRecords.threeRM) repRecords.threeRM = s.weight;
+        if (s.reps >= 5 && s.weight > repRecords.fiveRM) repRecords.fiveRM = s.weight;
+        if (s.reps >= 8 && s.weight > repRecords.eightRM) repRecords.eightRM = s.weight;
+        if (s.reps >= 10 && s.weight > repRecords.tenRM) repRecords.tenRM = s.weight;
       }
 
       const volume = s.weight * s.reps;
@@ -135,6 +173,54 @@ export function getExerciseHistory(
 
   const lastPerformanceSets = sessionLogs.length > 0 ? sessionLogs[0].sets : [];
 
+  // Compute Delta vs Previous Session
+  let deltaVsPrevious: DeltaVsPrevious | null = null;
+  if (sessionLogs.length >= 2) {
+    const latest = sessionLogs[0];
+    const prev = sessionLogs[1];
+
+    const weightDelta = latest.bestWeight - prev.bestWeight;
+    const weightPercent = prev.bestWeight > 0 ? Math.round((weightDelta / prev.bestWeight) * 1000) / 10 : 0;
+
+    const volumeDelta = latest.totalVolume - prev.totalVolume;
+    const volumePercent = prev.totalVolume > 0 ? Math.round((volumeDelta / prev.totalVolume) * 1000) / 10 : 0;
+
+    const oneRMDelta = latest.estimatedOneRepMax - prev.estimatedOneRepMax;
+    const oneRMPercent = prev.estimatedOneRepMax > 0 ? Math.round((oneRMDelta / prev.estimatedOneRepMax) * 1000) / 10 : 0;
+
+    deltaVsPrevious = {
+      weightDelta,
+      weightPercent,
+      volumeDelta,
+      volumePercent,
+      oneRMDelta,
+      oneRMPercent,
+    };
+  }
+
+  // Compute chronological sparkline values (up to 10 latest sessions, oldest -> newest)
+  const sparklineValues = sessionLogs
+    .slice(0, 10)
+    .reverse()
+    .map((log) => log.estimatedOneRepMax || log.bestWeight);
+
+  // Compute recovery cadence
+  let daysSinceLast: number | null = null;
+  let avgRestDays: number | null = null;
+
+  if (sessionLogs.length > 0) {
+    daysSinceLast = Math.max(0, Math.floor((Date.now() - sessionLogs[0].date) / (1000 * 60 * 60 * 24)));
+
+    if (sessionLogs.length >= 2) {
+      let totalGapDays = 0;
+      for (let i = 0; i < sessionLogs.length - 1; i++) {
+        const gap = Math.max(0, (sessionLogs[i].date - sessionLogs[i + 1].date) / (1000 * 60 * 60 * 24));
+        totalGapDays += gap;
+      }
+      avgRestDays = Math.round((totalGapDays / (sessionLogs.length - 1)) * 10) / 10;
+    }
+  }
+
   return {
     exerciseId,
     exerciseName: detectedName,
@@ -145,6 +231,11 @@ export function getExerciseHistory(
     estimatedMaxOneRepMax: Math.round(estimatedMax1RM),
     sessionLogs,
     lastPerformanceSets,
+    repRecords,
+    deltaVsPrevious,
+    sparklineValues,
+    daysSinceLast,
+    avgRestDays,
   };
 }
 

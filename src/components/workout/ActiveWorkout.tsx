@@ -21,6 +21,7 @@ import {
 import { generateId, formatDuration } from '../../lib/utils';
 import { useRestTimer } from '../../hooks/useRestTimer';
 import { getExerciseHistory, ExerciseHistorySummary } from '../../services/exerciseHistoryService';
+import { formatTonnage } from '../../lib/asciiStats';
 
 interface ActiveWorkoutProps {
   session: WorkoutSession;
@@ -186,9 +187,10 @@ export function ActiveWorkout({
           </span>
         </div>
 
-        <div className="flex items-center gap-1.5 shrink-0 text-[10px] text-muted-foreground tabular-nums">
+        <div className="flex items-center gap-2 shrink-0 text-[10px] text-muted-foreground tabular-nums">
+          <span className="text-foreground font-bold">{formatTonnage(totalVolumeKg)}</span>
+          <span className="text-border">│</span>
           <span className="font-bold text-foreground">{completedSets}/{totalSets}</span>
-          <span className="text-[9px]">SETS</span>
           <span className="text-accent font-bold tracking-tighter">[{setsAsciiBar}]</span>
         </div>
       </div>

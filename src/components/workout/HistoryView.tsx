@@ -10,12 +10,20 @@ import { AsciiBox } from '../ui/ascii-box';
 import { formatDate, formatDuration } from '../../lib/utils';
 import { ExerciseHistoryDrawer } from './ExerciseHistoryDrawer';
 import { getExerciseHistory, ExerciseHistorySummary } from '../../services/exerciseHistoryService';
+import {
+  getWeeklyTelemetry,
+  getSessionComparison,
+  getActivityHeatmap,
+} from '../../services/statsService';
+import { formatDelta, formatTonnage } from '../../lib/asciiStats';
 
 interface HistoryViewProps {
   history: WorkoutSession[];
   onStartFromTemplate: (workout: WorkoutSession) => void;
   onDeleteWorkout: (workoutId: string) => void;
 }
+
+const DAY_LABELS = ['LUN', 'MAR', 'MER', 'GIO', 'VEN', 'SAB', 'DOM'];
 
 export function HistoryView({
   history,
@@ -26,6 +34,11 @@ export function HistoryView({
   const [selectedExerciseSummary, setSelectedExerciseSummary] = useState<ExerciseHistorySummary | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showTelemetry, setShowTelemetry] = useState(true);
+
+  // Compute stats client-side (0ms latency)
+  const weeklyTelemetry = useMemo(() => getWeeklyTelemetry(history), [history]);
+  const activityHeatmap = useMemo(() => getActivityHeatmap(history, 10), [history]);
 
   const filteredHistory = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
@@ -57,7 +70,168 @@ export function HistoryView({
             LOGSTREAM // ALL SESSIONS ({history.length})
           </h2>
         </div>
+
+        {history.length > 0 && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowTelemetry((prev) => !prev)}
+            className="h-7 px-2 text-[10px] font-mono font-bold text-accent hover:bg-accent/10"
+            title="Mostra/Nascondi dashboard statistiche"
+          >
+            {showTelemetry ? '[ ▲ NASCONDI STATS ]' : '[ ▼ MOSTRA STATS ]'}
+          </Button>
+        )}
       </div>
+
+      {/* Telemetry & Stats Dashboard (Collapsible) */}
+      {history.length > 0 && showTelemetry && (
+        <div className="border border-border bg-card p-2.5 rounded-[2px] space-y-3">
+          {/* Header */}
+          <div className="flex items-center justify-between text-[10px] font-mono text-muted-foreground border-b border-border/40 pb-1.5">
+            <span className="font-bold text-foreground">┌─[ TELEMETRIA // CURRENT_WEEK ]</span>
+            {weeklyTelemetry.activeStreakWeeks > 0 && (
+              <span className="text-accent font-bold tabular-nums">
+                STREAK: {weeklyTelemetry.activeStreakWeeks} SETT.
+              </span>
+            )}
+          </div>
+
+          {/* 4-Pane Weekly Summary Grid */}
+          <div className="grid grid-cols-4 gap-1.5">
+            {/* Workouts this week */}
+            <div className="border border-border bg-secondary/30 p-1.5 rounded-[2px] text-center">
+              <div className="text-[8px] font-mono text-muted-foreground uppercase font-bold">
+                SESS (7D)
+              </div>
+              <div className="text-sm font-black font-mono text-foreground mt-0.5 tabular-nums">
+                {weeklyTelemetry.currentWeekWorkouts}
+              </div>
+              <div className="text-[8px] text-muted-foreground/70 font-mono mt-0.5">
+                prev: {weeklyTelemetry.prevWeekWorkouts}
+              </div>
+            </div>
+
+            {/* Volume this week */}
+            <div className="border border-border bg-secondary/30 p-1.5 rounded-[2px] text-center">
+              <div className="text-[8px] font-mono text-muted-foreground uppercase font-bold">
+                TONNAGGIO
+              </div>
+              <div className="text-sm font-black font-mono text-accent mt-0.5 tabular-nums">
+                {formatTonnage(weeklyTelemetry.currentWeekVolume)}
+              </div>
+              <div
+                className={`text-[8px] font-bold font-mono mt-0.5 tabular-nums ${
+                  weeklyTelemetry.volumeDeltaPercent > 0
+                    ? 'text-accent'
+                    : weeklyTelemetry.volumeDeltaPercent < 0
+                    ? 'text-destructive'
+                    : 'text-muted-foreground/60'
+                }`}
+              >
+                {weeklyTelemetry.prevWeekVolume > 0
+                  ? formatDelta(weeklyTelemetry.volumeDeltaPercent, { isPercent: true }).text
+                  : '—'}
+              </div>
+            </div>
+
+            {/* Total Completed Sets */}
+            <div className="border border-border bg-secondary/30 p-1.5 rounded-[2px] text-center">
+              <div className="text-[8px] font-mono text-muted-foreground uppercase font-bold">
+                SERIE TOT
+              </div>
+              <div className="text-sm font-black font-mono text-foreground mt-0.5 tabular-nums">
+                {weeklyTelemetry.currentWeekSets}
+              </div>
+              <div className="text-[8px] text-muted-foreground/70 font-mono mt-0.5">
+                allenanti
+              </div>
+            </div>
+
+            {/* Avg Duration */}
+            <div className="border border-border bg-secondary/30 p-1.5 rounded-[2px] text-center">
+              <div className="text-[8px] font-mono text-muted-foreground uppercase font-bold">
+                DURATA MED
+              </div>
+              <div className="text-sm font-black font-mono text-foreground mt-0.5 tabular-nums">
+                {weeklyTelemetry.avgDurationMinutes > 0 ? `${weeklyTelemetry.avgDurationMinutes}m` : '—'}
+              </div>
+              <div className="text-[8px] text-muted-foreground/70 font-mono mt-0.5">
+                a sessione
+              </div>
+            </div>
+          </div>
+
+          {/* Muscle Volume Split ASCII Bars */}
+          {weeklyTelemetry.muscleDistribution.length > 0 && (
+            <div className="space-y-1 pt-1 border-t border-border/40">
+              <div className="text-[9px] font-mono uppercase text-muted-foreground font-bold">
+                ┌─[ RIPARTIZIONE SERIE PER DISTRETTO (ULTIME 2 SETT.) ]
+              </div>
+              <div className="space-y-1 font-mono text-[10px] pt-0.5">
+                {weeklyTelemetry.muscleDistribution.slice(0, 5).map((item) => (
+                  <div key={item.muscleGroup} className="flex items-center justify-between text-muted-foreground">
+                    <span className="w-14 truncate uppercase text-foreground/90 font-semibold text-[9px]">
+                      {item.muscleGroup}
+                    </span>
+                    <span className="text-accent font-black tracking-widest text-[9px] select-none mx-2">
+                      {item.asciiBar}
+                    </span>
+                    <span className="tabular-nums text-foreground text-[9px] shrink-0 font-bold">
+                      {item.sets}s ({item.percentage}%)
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Activity Consistency Heatmap (Last 10 Weeks) */}
+          <div className="space-y-1 pt-1 border-t border-border/40">
+            <div className="flex items-center justify-between text-[9px] font-mono uppercase text-muted-foreground font-bold">
+              <span>┌─[ CONSISTENZA ATTIVITÀ // 10 SETTIMANE ]</span>
+              <span className="text-foreground/70 tabular-nums">
+                {activityHeatmap.totalSessionsInPeriod} sess
+              </span>
+            </div>
+            <div className="bg-secondary/20 p-2 rounded-[2px] overflow-x-auto">
+              <div className="grid grid-flow-col auto-cols-max gap-x-2 text-[10px] font-mono select-none">
+                {/* Labels column */}
+                <div className="grid grid-rows-7 gap-y-0.5 text-[8px] text-muted-foreground font-bold pr-1">
+                  {DAY_LABELS.map((day, idx) => (
+                    <span key={day} className="h-3 flex items-center">
+                      {idx % 2 === 0 ? day : ''}
+                    </span>
+                  ))}
+                </div>
+                {/* Week columns */}
+                {activityHeatmap.weeks.map((week, wIdx) => (
+                  <div key={wIdx} className="grid grid-rows-7 gap-y-0.5">
+                    {week.map((day) => (
+                      <span
+                        key={day.dateStr}
+                        className={`h-3 w-3 flex items-center justify-center rounded-[1px] text-[9px] leading-none ${
+                          day.count > 0
+                            ? 'bg-accent/20 text-accent font-black border border-accent/40'
+                            : 'text-muted-foreground/30'
+                        }`}
+                        title={`${day.dateStr}: ${day.count} sessioni`}
+                      >
+                        {day.char}
+                      </span>
+                    ))}
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center justify-between text-[8px] font-mono text-muted-foreground/60 pt-1.5 border-t border-border/30 mt-1.5">
+                <span>· RIPOSO</span>
+                <span>░ 1 SESSIONE</span>
+                <span>▒ 2+ SESSIONI</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Search Filter - only shown when there are 4 or more sessions */}
       {history.length >= 4 && (
@@ -106,6 +280,9 @@ export function HistoryView({
             }, 0);
 
             const dateStr = formatDate(workout.startedAt).split(' ')[0];
+
+            // Session comparison against prior instance of same routine
+            const comparison = getSessionComparison(workout, history);
 
             return (
               <AsciiBox
@@ -157,6 +334,22 @@ export function HistoryView({
                     {workout.exercises.length} movimenti
                   </span>
                 </div>
+
+                {/* Session delta comparison vs prior session */}
+                {comparison && (
+                  <div className="text-[10px] font-mono bg-secondary/30 px-2 py-1 rounded-[2px] flex items-center justify-between text-muted-foreground">
+                    <span>
+                      vs PREV: <strong className={comparison.volumeDelta >= 0 ? 'text-accent' : 'text-destructive'}>
+                        {formatDelta(comparison.volumeDeltaPercent, { isPercent: true }).text} VOL
+                      </strong>
+                    </span>
+                    {comparison.durationDeltaMinutes !== 0 && (
+                      <span className="text-[9px]">
+                        TEMPO: {comparison.durationDeltaMinutes > 0 ? `+${comparison.durationDeltaMinutes}m` : `${comparison.durationDeltaMinutes}m`}
+                      </span>
+                    )}
+                  </div>
+                )}
 
                 {/* Collapsed quick tree preview */}
                 {!isExpanded && (

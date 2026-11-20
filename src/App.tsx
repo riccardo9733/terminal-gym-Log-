@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { MobileAppShell } from './components/layout/MobileAppShell';
 import { TopStatusBar } from './components/layout/TopStatusBar';
 import { BottomDock, NavTab } from './components/layout/BottomDock';
@@ -18,6 +18,8 @@ import { useRestTimer } from './hooks/useRestTimer';
 import { workoutService } from './services/workoutService';
 import { exerciseService } from './services/exerciseService';
 import { routineService } from './services/routineService';
+import { getWeeklyTelemetry } from './services/statsService';
+import { formatTonnage } from './lib/asciiStats';
 import {
   WorkoutSession,
   WorkoutExercise,
@@ -311,6 +313,8 @@ export function App() {
     );
   }, 0);
 
+  const weeklyTelemetry = useMemo(() => getWeeklyTelemetry(history), [history]);
+
   // Latest completed session
   const lastSession = history.length > 0 ? history[0] : null;
   const lastSessionDurationSec = lastSession?.endedAt
@@ -389,8 +393,11 @@ export function App() {
                 {/* 2. Tiled Lifetime Telemetry Panes */}
                 <div className="grid grid-cols-2 gap-2">
                   <div className="border border-border bg-card p-2.5 rounded-[2px] space-y-1">
-                    <div className="text-[9px] font-mono text-muted-foreground uppercase tracking-wider">
-                      ┌─[ SESSIONI ]
+                    <div className="flex items-center justify-between text-[9px] font-mono text-muted-foreground uppercase tracking-wider">
+                      <span>┌─[ SESSIONI ]</span>
+                      {weeklyTelemetry.currentWeekWorkouts > 0 && (
+                        <span className="text-accent font-bold">7D: {weeklyTelemetry.currentWeekWorkouts}</span>
+                      )}
                     </div>
                     <div className="text-xl font-black font-mono text-foreground tabular-nums">
                       {totalCompletedWorkouts}
@@ -398,13 +405,14 @@ export function App() {
                   </div>
 
                   <div className="border border-border bg-card p-2.5 rounded-[2px] space-y-1">
-                    <div className="text-[9px] font-mono text-muted-foreground uppercase tracking-wider">
-                      ┌─[ VOLUME ]
+                    <div className="flex items-center justify-between text-[9px] font-mono text-muted-foreground uppercase tracking-wider">
+                      <span>┌─[ VOLUME ]</span>
+                      {weeklyTelemetry.currentWeekVolume > 0 && (
+                        <span className="text-accent font-bold">7D: {formatTonnage(weeklyTelemetry.currentWeekVolume)}</span>
+                      )}
                     </div>
                     <div className="text-xl font-black font-mono text-accent tabular-nums">
-                      {totalLifetimeVolume > 1000
-                        ? `${(totalLifetimeVolume / 1000).toFixed(1)}t`
-                        : `${totalLifetimeVolume}kg`}
+                      {formatTonnage(totalLifetimeVolume)}
                     </div>
                   </div>
                 </div>
@@ -541,6 +549,7 @@ export function App() {
         {currentTab === 'routines' && (
           <RoutinesView
             routines={routines}
+            history={history}
             onStartRoutine={handleStartFromRoutine}
             onEditRoutine={(routine) => {
               setRoutineToEdit(routine);

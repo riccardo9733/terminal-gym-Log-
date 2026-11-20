@@ -55,6 +55,11 @@ export function ExerciseCard({
   const [showNotes, setShowNotes] = useState(Boolean(exercise.notes));
   const [optionsOpen, setOptionsOpen] = useState(false);
 
+  const hasNewPR =
+    bestWeight !== undefined &&
+    bestWeight > 0 &&
+    exercise.sets.some((s) => s.completed && s.weight > bestWeight);
+
   const handleCycleRest = () => {
     const current = exercise.restSeconds || 90;
     const currentIndex = REST_PRESETS.indexOf(current);
@@ -186,6 +191,12 @@ export function ExerciseCard({
               title={onOpenHistory ? 'Tocca per aprire storico PR' : undefined}
             >
               {`PR: ${bestWeight}kg`}
+            </Badge>
+          )}
+
+          {hasNewPR && (
+            <Badge variant="accent" className="text-[10px] bg-accent text-background font-black border-accent animate-pulse">
+              [★ NEW_PR!]
             </Badge>
           )}
 
