@@ -43,10 +43,6 @@ export function App() {
     user,
     loading: authLoading,
     isFirebaseConfigured,
-    loginWithGoogle,
-    loginWithGithub,
-    loginWithEmail,
-    registerWithEmail,
     logout,
   } = useAuth();
 
@@ -183,25 +179,44 @@ export function App() {
 
   // Finish active session
   const handleFinishSession = async (finished: WorkoutSession, saveAsRoutine = false) => {
-    await workoutService.saveWorkout(userId, finished);
+    // 1. Optimistically close active session and navigate immediately (0ms UI lag)
+    setActiveSession(null);
+    setCurrentTab('history');
+    setHistory((prev) => [finished, ...prev.filter((w) => w.id !== finished.id)]);
 
-    if (saveAsRoutine) {
-      await routineService.createRoutineFromSession(userId, finished);
-      await loadRoutines();
+    try {
+      await workoutService.saveWorkout(userId, finished);
+    } catch (err) {
+      console.error('Failed to save workout session:', err);
     }
 
-    setActiveSession(null);
-    await loadHistory();
-    await loadUserExercises();
-    setCurrentTab('history');
+    if (saveAsRoutine) {
+      try {
+        await routineService.createRoutineFromSession(userId, finished);
+        await loadRoutines();
+      } catch (err) {
+        console.error('Failed to create routine from session:', err);
+      }
+    }
+
+    try {
+      await Promise.all([loadHistory(), loadUserExercises()]);
+    } catch (err) {
+      console.warn('Failed to refresh history or exercises:', err);
+    }
   };
 
   // Cancel/discard active session
   const handleCancelSession = async () => {
-    if (activeSession) {
-      await workoutService.deleteWorkout(userId, activeSession.id);
-    }
+    const sessionToCancel = activeSession;
     setActiveSession(null);
+    if (sessionToCancel) {
+      try {
+        await workoutService.deleteWorkout(userId, sessionToCancel.id);
+      } catch (err) {
+        console.error('Failed to delete workout session:', err);
+      }
+    }
   };
 
   // Record exercise PR on set completion
@@ -319,14 +334,7 @@ export function App() {
   }
 
   if (!user) {
-    return (
-      <AuthScreen
-        onLoginEmail={loginWithEmail}
-        onRegisterEmail={registerWithEmail}
-        onLoginGoogle={loginWithGoogle}
-        onLoginGithub={loginWithGithub}
-      />
-    );
+    return <AuthScreen />;
   }
 
   return (

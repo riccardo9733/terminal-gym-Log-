@@ -1,58 +1,33 @@
-import { useState, useEffect } from 'react';
-import { onAuthStateChanged, User } from 'firebase/auth';
-import {
-  auth,
-  isFirebaseConfigured,
-  loginWithGoogle,
-  loginWithGithub,
-  loginWithEmail,
-  registerWithEmail,
-  logoutUser,
-} from '../lib/firebase';
+import { useUser, useClerk } from '@clerk/react';
+import { useMemo } from 'react';
 import { UserProfile } from '../types/workout';
+import { isFirebaseConfigured } from '../lib/firebase';
 
 export function useAuth() {
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const { isLoaded, isSignedIn, user } = useUser();
+  const { signOut, openSignIn, openSignUp, openUserProfile } = useClerk();
 
-  useEffect(() => {
-    if (!isFirebaseConfigured || !auth) {
-      setUser(null);
-      setLoading(false);
-      return;
-    }
-
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser: User | null) => {
-      if (firebaseUser && !firebaseUser.isAnonymous) {
-        setUser({
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
-          displayName:
-            firebaseUser.displayName ||
-            firebaseUser.email?.split('@')[0] ||
-            'athlete',
-          isAnonymous: false,
-        });
-      } else {
-        if (firebaseUser?.isAnonymous && auth) {
-          logoutUser().catch(() => { });
-        }
-        setUser(null);
-      }
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, []);
+  const userProfile: UserProfile | null = useMemo(() => {
+    if (!isSignedIn || !user) return null;
+    return {
+      uid: user.id,
+      email: user.primaryEmailAddress?.emailAddress || null,
+      displayName:
+        user.fullName ||
+        user.username ||
+        user.primaryEmailAddress?.emailAddress?.split('@')[0] ||
+        'athlete',
+      isAnonymous: false,
+    };
+  }, [isSignedIn, user]);
 
   return {
-    user,
-    loading,
+    user: userProfile,
+    loading: !isLoaded,
     isFirebaseConfigured,
-    loginWithGoogle,
-    loginWithGithub,
-    loginWithEmail,
-    registerWithEmail,
-    logout: logoutUser,
+    logout: () => signOut(),
+    openSignIn,
+    openSignUp,
+    openUserProfile,
   };
 }

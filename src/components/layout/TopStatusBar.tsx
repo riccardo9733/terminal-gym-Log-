@@ -1,4 +1,5 @@
 import { Wifi, WifiOff, Sun, User as UserIcon } from 'lucide-react';
+import { UserButton } from '@clerk/react';
 import { Badge } from '../ui/badge';
 import { SyncState } from '../../hooks/useNetworkSync';
 import { UserProfile } from '../../types/workout';
@@ -29,7 +30,7 @@ export function TopStatusBar({
           </span>
         </div>
 
-        {/* Right Controls: WakeLock, Sync Status, User Profile */}
+        {/* Right Controls: WakeLock, Sync Status, User Profile, Clerk UserButton */}
         <div className="flex items-center space-x-1.5">
           {/* Wake Lock Status */}
           {isWakeLocked && (
@@ -74,6 +75,15 @@ export function TopStatusBar({
                 : 'LOGIN'}
             </span>
           </button>
+
+          {/* Clerk User Button */}
+          <UserButton
+            appearance={{
+              elements: {
+                avatarBox: 'h-7 w-7 border border-border',
+              },
+            }}
+          />
         </div>
       </div>
     </header>

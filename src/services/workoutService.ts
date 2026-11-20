@@ -98,7 +98,9 @@ export const workoutService = {
 
     const docRef = doc(db, 'users', userId, 'workouts', workout.id);
     // Non-blocking firestore write (persists to local IndexedDB immediately)
-    return setDoc(docRef, payload, { merge: true });
+    // Strip any remaining undefined values cleanly to prevent Firestore rejection
+    const sanitized = JSON.parse(JSON.stringify(payload));
+    return setDoc(docRef, sanitized, { merge: true });
   },
 
   // Delete a workout session

@@ -4,6 +4,7 @@ import {
   LogOut,
   Terminal,
   Check,
+  Settings,
 } from 'lucide-react';
 import {
   Drawer,
@@ -15,6 +16,7 @@ import {
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { UserProfile } from '../../types/workout';
+import { useClerk } from '@clerk/react';
 
 interface AuthModalProps {
   open: boolean;
@@ -33,6 +35,7 @@ export function AuthModal({
 }: AuthModalProps) {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [loggingOut, setLoggingOut] = useState(false);
+  const { openUserProfile } = useClerk();
 
   const handleLogout = async () => {
     setErrorMsg(null);
@@ -49,6 +52,11 @@ export function AuthModal({
     } finally {
       setLoggingOut(false);
     }
+  };
+
+  const handleOpenClerkProfile = () => {
+    onOpenChange(false);
+    openUserProfile();
   };
 
   return (
@@ -98,34 +106,45 @@ export function AuthModal({
           <div className="rounded border border-accent/40 bg-accent/5 p-3 space-y-1.5 text-xs font-mono">
             <div className="flex items-center gap-1.5 font-bold text-accent">
               <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
-              <span>AUTHENTICATED // OFFLINE_CACHE_ACTIVE</span>
+              <span>CLERK_AUTHENTICATED // OFFLINE_CACHE_ACTIVE</span>
             </div>
             <p className="text-[11px] text-muted-foreground leading-relaxed">
               Your workouts, routines, and personal records are backed up and synced in real-time with Cloud Firestore. Offline edits in the gym sync automatically when back online.
             </p>
             {user?.uid && (
               <div className="pt-1.5 text-[10px] text-muted-foreground border-t border-border/40 truncate">
-                <span className="text-foreground">UID:</span> {user.uid}
+                <span className="text-foreground">CLERK_USER_ID:</span> {user.uid}
               </div>
             )}
           </div>
 
-          {/* Logout Button */}
-          <Button
-            variant="destructive"
-            disabled={loggingOut}
-            onClick={handleLogout}
-            className="w-full text-xs font-mono gap-2 h-11"
-          >
-            <LogOut className="h-4 w-4" strokeWidth={1.75} />
-            <span>{loggingOut ? 'SIGNING_OUT...' : 'SIGN_OUT'}</span>
-          </Button>
+          {/* Action Buttons: Manage Profile & Sign Out */}
+          <div className="space-y-2">
+            <Button
+              variant="secondary"
+              onClick={handleOpenClerkProfile}
+              className="w-full text-xs font-mono gap-2 h-10 border border-border"
+            >
+              <Settings className="h-3.5 w-3.5 text-primary" strokeWidth={2} />
+              <span>MANAGE_CLERK_PROFILE</span>
+            </Button>
+
+            <Button
+              variant="destructive"
+              disabled={loggingOut}
+              onClick={handleLogout}
+              className="w-full text-xs font-mono gap-2 h-11"
+            >
+              <LogOut className="h-4 w-4" strokeWidth={1.75} />
+              <span>{loggingOut ? 'SIGNING_OUT...' : 'SIGN_OUT'}</span>
+            </Button>
+          </div>
 
           {/* System Specs info */}
           <div className="border-t border-border/50 pt-2 text-[10px] font-mono text-muted-foreground space-y-1">
             <div className="flex justify-between">
-              <span>DESIGN_SYSTEM:</span>
-              <span className="text-foreground">OpenCode Terminal Mono</span>
+              <span>AUTH_PROVIDER:</span>
+              <span className="text-foreground">Clerk</span>
             </div>
             <div className="flex justify-between">
               <span>OFFLINE_CACHE:</span>

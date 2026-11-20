@@ -68,7 +68,8 @@ export const exerciseService = {
 
     if (isFirebaseConfigured && db && userId !== 'demo-user') {
       const docRef = doc(db, 'users', userId, 'meta', 'exercises');
-      setDoc(docRef, updatedMap, { merge: true }).catch((err) => {
+      const sanitized = JSON.parse(JSON.stringify(updatedMap));
+      setDoc(docRef, sanitized, { merge: true }).catch((err) => {
         console.warn('Error syncing exercise meta to Firestore:', err);
       });
     }

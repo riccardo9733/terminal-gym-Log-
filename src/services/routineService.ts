@@ -119,7 +119,7 @@ export const routineService = {
         // Sync initial defaults to Firestore
         for (const routine of localList) {
           const docRef = doc(db, 'users', userId, 'routines', routine.id);
-          setDoc(docRef, routine).catch(() => {});
+          setDoc(docRef, routine).catch(() => { });
         }
       }
     } catch (e) {
@@ -137,7 +137,8 @@ export const routineService = {
 
     if (isFirebaseConfigured && db && userId !== 'demo-user') {
       const docRef = doc(db, 'users', userId, 'routines', routine.id);
-      return setDoc(docRef, routine, { merge: true });
+      const sanitized = JSON.parse(JSON.stringify(routine));
+      return setDoc(docRef, sanitized, { merge: true });
     }
   },
 

@@ -1,17 +1,6 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAnalytics, isSupported, Analytics } from 'firebase/analytics';
 import {
-  getAuth,
-  Auth,
-  GoogleAuthProvider,
-  GithubAuthProvider,
-  signInWithPopup,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  updateProfile,
-  signOut,
-} from 'firebase/auth';
-import {
   initializeFirestore,
   Firestore,
   persistentLocalCache,
@@ -36,19 +25,18 @@ export const isFirebaseConfigured = Boolean(
 );
 
 let app: FirebaseApp | null = null;
-let auth: Auth | null = null;
 let db: Firestore | null = null;
 let analytics: Analytics | null = null;
 
 if (isFirebaseConfigured) {
   try {
     app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    // Initialize Firestore with persistent IndexedDB multi-tab cache
+    // Initialize Firestore with persistent IndexedDB multi-tab cache and ignore undefined properties
     db = initializeFirestore(app, {
       localCache: persistentLocalCache({
         tabManager: persistentMultipleTabManager(),
       }),
+      ignoreUndefinedProperties: true,
     });
 
     if (typeof window !== 'undefined') {
@@ -65,39 +53,4 @@ if (isFirebaseConfigured) {
   }
 }
 
-export { app, auth, db, analytics };
-
-export async function loginWithGoogle() {
-  if (!auth) throw new Error('Firebase Auth not configured');
-  const provider = new GoogleAuthProvider();
-  return signInWithPopup(auth, provider);
-}
-
-export async function loginWithGithub() {
-  if (!auth) throw new Error('Firebase Auth not configured');
-  const provider = new GithubAuthProvider();
-  return signInWithPopup(auth, provider);
-}
-
-export async function loginWithEmail(email: string, pass: string) {
-  if (!auth) throw new Error('Firebase Auth not configured');
-  return signInWithEmailAndPassword(auth, email.trim(), pass);
-}
-
-export async function registerWithEmail(email: string, pass: string, displayName?: string) {
-  if (!auth) throw new Error('Firebase Auth not configured');
-  const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), pass);
-  if (displayName && userCredential.user) {
-    try {
-      await updateProfile(userCredential.user, { displayName });
-    } catch {
-      // Non-critical profile update
-    }
-  }
-  return userCredential;
-}
-
-export async function logoutUser() {
-  if (!auth) return;
-  return signOut(auth);
-}
+export { app, db, analytics };

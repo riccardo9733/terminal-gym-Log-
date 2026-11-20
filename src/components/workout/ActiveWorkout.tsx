@@ -324,10 +324,14 @@ export function ActiveWorkout({
       </Button>
 
       {/* ALWAYS VISIBLE PINNED BOTTOM ACTION BAR (Above the main navigation dock) */}
-      <div className="fixed bottom-14 left-0 right-0 z-30 border-t border-border bg-background shadow-2xl">
+      <div
+        className="fixed left-0 right-0 z-30 border-t border-border bg-background shadow-2xl"
+        style={{ bottom: 'calc(3.5rem + env(safe-area-inset-bottom, 0px))' }}
+      >
         <div className="mx-auto flex max-w-md items-center justify-between gap-2.5 px-3 py-2">
           {/* Always Visible DISCARD Button */}
           <Button
+            type="button"
             variant="destructive"
             onClick={() => setShowCancelConfirm(true)}
             className="flex-1 max-w-[130px] font-mono text-xs tracking-wider h-11"
@@ -339,6 +343,7 @@ export function ActiveWorkout({
 
           {/* Always Visible FINISH Button */}
           <Button
+            type="button"
             variant="accent"
             onClick={() => setShowFinishConfirm(true)}
             className="flex-1 font-mono text-xs tracking-wider h-11"
