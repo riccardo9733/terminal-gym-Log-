@@ -40,6 +40,12 @@ export interface WorkoutSession {
   defaultRestSeconds?: number; // Routine/session-level default rest timer
 }
 
+export interface RoutineSetTemplate {
+  reps: number;
+  isWarmup?: boolean;
+  weight?: number;
+}
+
 export interface RoutineExercise {
   exerciseId: string;
   name: string;
@@ -49,6 +55,7 @@ export interface RoutineExercise {
   defaultReps?: number;
   restSeconds?: number;    // Overrides routine defaultRestSeconds if provided
   notes?: string;
+  setsTemplate?: RoutineSetTemplate[];
 }
 
 export interface WorkoutRoutine {

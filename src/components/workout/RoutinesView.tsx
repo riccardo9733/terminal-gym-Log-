@@ -221,7 +221,11 @@ export function RoutinesView({
                         </div>
 
                         <div className="flex items-center gap-2 shrink-0 text-[11px] tabular-nums font-semibold text-primary">
-                          <span>{ex.targetSets} serie × {ex.defaultReps || 8} rip</span>
+                          <span>
+                            {ex.setsTemplate && ex.setsTemplate.length > 0
+                              ? `${ex.setsTemplate.filter((s) => s.isWarmup).length}W + ${ex.setsTemplate.filter((s) => !s.isWarmup).length}×${ex.defaultReps || 8} rip`
+                              : `${ex.targetSets} serie × ${ex.defaultReps || 8} rip`}
+                          </span>
                           {ex.defaultWeight !== undefined && ex.defaultWeight > 0 && (
                             <span className="text-accent">({ex.defaultWeight}kg)</span>
                           )}

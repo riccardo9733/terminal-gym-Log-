@@ -3,7 +3,7 @@ import { DefaultExercise } from '../types/workout';
 export const DEFAULT_EXERCISES: DefaultExercise[] = [
   // CHEST
   { id: 'barbell-bench-press', name: 'Barbell Bench Press', muscleGroup: 'chest', aliases: ['flat bench', 'panca piana'] },
-  { id: 'incline-dumbbell-press', name: 'Incline Dumbbell Press', muscleGroup: 'chest', aliases: ['incline db press'] },
+  { id: 'incline-dumbbell-press', name: 'Incline Dumbbell Press', muscleGroup: 'chest', aliases: ['incline db press', 'spinte 30', 'spinte 30°', 'spinte manubri 30'] },
   { id: 'incline-barbell-bench-press', name: 'Incline Barbell Bench Press', muscleGroup: 'chest', aliases: ['incline bench'] },
   { id: 'chest-dips', name: 'Weighted Dips (Chest)', muscleGroup: 'chest', aliases: ['dips', 'parallele'] },
   { id: 'dumbbell-chest-fly', name: 'Dumbbell Chest Fly', muscleGroup: 'chest', aliases: ['croci manubri'] },
@@ -22,7 +22,7 @@ export const DEFAULT_EXERCISES: DefaultExercise[] = [
   { id: 'single-arm-dumbbell-row', name: 'Single-Arm Dumbbell Row', muscleGroup: 'back', aliases: ['rematore manubrio'] },
   { id: 't-bar-row', name: 'T-Bar Row', muscleGroup: 'back', aliases: ['rematore a t'] },
   { id: 'chest-supported-row', name: 'Chest-Supported Row', muscleGroup: 'back', aliases: ['rematore panca'] },
-  { id: 'face-pull', name: 'Face Pull', muscleGroup: 'back', aliases: ['facepull cavo'] },
+  { id: 'face-pull', name: 'Face Pull', muscleGroup: 'back', aliases: ['facepull cavo', 'pull face', 'face pull'] },
   { id: 'hyperextension', name: 'Hyperextensions (Back)', muscleGroup: 'back', aliases: ['iperestensioni'] },
 
   // LEGS
@@ -53,7 +53,7 @@ export const DEFAULT_EXERCISES: DefaultExercise[] = [
 
   // ARMS
   { id: 'barbell-bicep-curl', name: 'Barbell Bicep Curl', muscleGroup: 'arms', aliases: ['curl bilanciere'] },
-  { id: 'incline-dumbbell-curl', name: 'Incline Dumbbell Curl', muscleGroup: 'arms', aliases: ['curl panca inclinata'] },
+  { id: 'incline-dumbbell-curl', name: 'Incline Dumbbell Curl', muscleGroup: 'arms', aliases: ['curl panca inclinata', 'curl panca 60', 'curl panca 60°', 'curl 60'] },
   { id: 'dumbbell-hammer-curl', name: 'Dumbbell Hammer Curl', muscleGroup: 'arms', aliases: ['hammer curl', 'curl a martello'] },
   { id: 'preacher-curl', name: 'Preacher Curl (Scott Bench)', muscleGroup: 'arms', aliases: ['panca scott'] },
   { id: 'cable-bicep-curl', name: 'Cable Bicep Curl', muscleGroup: 'arms', aliases: ['curl al cavo'] },

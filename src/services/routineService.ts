@@ -10,75 +10,195 @@ import {
   WorkoutRoutine,
   WorkoutSession,
   WorkoutExercise,
+  WorkoutSet,
   MuscleGroup,
+  RoutineSetTemplate,
 } from '../types/workout';
 import { generateId } from '../lib/utils';
 
 const LOCAL_STORAGE_ROUTINES_KEY = 'terminal_gym_routines';
 
+// 2 warmup sets (4 & 2 reps) + 2 working sets (8 reps)
+const DEFAULT_SETS_TEMPLATE: RoutineSetTemplate[] = [
+  { reps: 4, isWarmup: true },
+  { reps: 2, isWarmup: true },
+  { reps: 8, isWarmup: false },
+  { reps: 8, isWarmup: false },
+];
+
 export const INITIAL_DEFAULT_ROUTINES: WorkoutRoutine[] = [
   {
-    id: 'routine-upper-a',
-    title: 'UPPER_A',
-    description: 'Panca piana, rematore, overhead press, trazioni, tricipiti e bicipiti',
+    id: 'routine-scheda-a',
+    title: 'SCHEDA_A',
+    description: 'Spinte 30° (petto), lat machine (dorso), pressa 45° (gambe), alzate laterali (delt.), curl panca 60° (bic.)',
     defaultRestSeconds: 90,
     createdAt: 1700000000000,
     updatedAt: 1700000000000,
     exercises: [
-      { exerciseId: 'barbell-bench-press', name: 'Barbell Bench Press', muscleGroup: 'chest', targetSets: 4, defaultReps: 8, restSeconds: 120 },
-      { exerciseId: 'barbell-bent-over-row', name: 'Barbell Bent-Over Row', muscleGroup: 'back', targetSets: 4, defaultReps: 8, restSeconds: 90 },
-      { exerciseId: 'overhead-press', name: 'Overhead Barbell Press (OHP)', muscleGroup: 'shoulders', targetSets: 3, defaultReps: 8, restSeconds: 120 },
-      { exerciseId: 'pull-up', name: 'Pull-Up', muscleGroup: 'back', targetSets: 3, defaultReps: 8, restSeconds: 90 },
-      { exerciseId: 'tricep-rope-pushdown', name: 'Tricep Rope Pushdown', muscleGroup: 'arms', targetSets: 3, defaultReps: 12, restSeconds: 60 },
-      { exerciseId: 'barbell-bicep-curl', name: 'Barbell Bicep Curl', muscleGroup: 'arms', targetSets: 3, defaultReps: 10, restSeconds: 60 },
+      {
+        exerciseId: 'incline-dumbbell-press',
+        name: 'Spinte 30° (Petto)',
+        muscleGroup: 'chest',
+        targetSets: 4,
+        defaultReps: 8,
+        restSeconds: 90,
+        setsTemplate: DEFAULT_SETS_TEMPLATE,
+      },
+      {
+        exerciseId: 'lat-pulldown',
+        name: 'Lat Machine (Dorso)',
+        muscleGroup: 'back',
+        targetSets: 4,
+        defaultReps: 8,
+        restSeconds: 90,
+        setsTemplate: DEFAULT_SETS_TEMPLATE,
+      },
+      {
+        exerciseId: 'leg-press',
+        name: 'Pressa 45° (Gambe)',
+        muscleGroup: 'legs',
+        targetSets: 4,
+        defaultReps: 8,
+        restSeconds: 90,
+        setsTemplate: DEFAULT_SETS_TEMPLATE,
+      },
+      {
+        exerciseId: 'dumbbell-lateral-raise',
+        name: 'Alzate Laterali (Delt.)',
+        muscleGroup: 'shoulders',
+        targetSets: 4,
+        defaultReps: 8,
+        restSeconds: 60,
+        setsTemplate: DEFAULT_SETS_TEMPLATE,
+      },
+      {
+        exerciseId: 'incline-dumbbell-curl',
+        name: 'Curl Panca 60° (Bic.)',
+        muscleGroup: 'arms',
+        targetSets: 4,
+        defaultReps: 8,
+        restSeconds: 60,
+        setsTemplate: DEFAULT_SETS_TEMPLATE,
+      },
     ],
   },
   {
-    id: 'routine-lower-b',
-    title: 'LOWER_B',
-    description: 'Squat, stacco rumeno, split squat, leg curl, polpacci e addome',
+    id: 'routine-scheda-b',
+    title: 'SCHEDA_B',
+    description: 'Shoulder press, leg curl, french press, pull face, crunch ai cavi',
     defaultRestSeconds: 90,
     createdAt: 1700000000000,
     updatedAt: 1700000000000,
     exercises: [
-      { exerciseId: 'barbell-back-squat', name: 'Barbell Back Squat', muscleGroup: 'legs', targetSets: 4, defaultReps: 6, restSeconds: 150 },
-      { exerciseId: 'romanian-deadlift', name: 'Romanian Deadlift (RDL)', muscleGroup: 'legs', targetSets: 3, defaultReps: 8, restSeconds: 120 },
-      { exerciseId: 'bulgarian-split-squat', name: 'Bulgarian Split Squat', muscleGroup: 'legs', targetSets: 3, defaultReps: 10, restSeconds: 90 },
-      { exerciseId: 'lying-leg-curl', name: 'Lying Leg Curl', muscleGroup: 'legs', targetSets: 3, defaultReps: 12, restSeconds: 60 },
-      { exerciseId: 'standing-calf-raise', name: 'Standing Calf Raise', muscleGroup: 'legs', targetSets: 4, defaultReps: 15, restSeconds: 60 },
-      { exerciseId: 'hanging-leg-raise', name: 'Hanging Leg Raise', muscleGroup: 'core', targetSets: 3, defaultReps: 12, restSeconds: 60 },
+      {
+        exerciseId: 'seated-dumbbell-shoulder-press',
+        name: 'Shoulder Press',
+        muscleGroup: 'shoulders',
+        targetSets: 4,
+        defaultReps: 8,
+        restSeconds: 90,
+        setsTemplate: DEFAULT_SETS_TEMPLATE,
+      },
+      {
+        exerciseId: 'lying-leg-curl',
+        name: 'Leg Curl',
+        muscleGroup: 'legs',
+        targetSets: 4,
+        defaultReps: 8,
+        restSeconds: 90,
+        setsTemplate: DEFAULT_SETS_TEMPLATE,
+      },
+      {
+        exerciseId: 'skullcrushers',
+        name: 'French Press',
+        muscleGroup: 'arms',
+        targetSets: 4,
+        defaultReps: 8,
+        restSeconds: 60,
+        setsTemplate: DEFAULT_SETS_TEMPLATE,
+      },
+      {
+        exerciseId: 'face-pull',
+        name: 'Pull Face',
+        muscleGroup: 'back',
+        targetSets: 4,
+        defaultReps: 8,
+        restSeconds: 60,
+        setsTemplate: DEFAULT_SETS_TEMPLATE,
+      },
+      {
+        exerciseId: 'cable-crunch',
+        name: 'Crunch ai Cavi',
+        muscleGroup: 'core',
+        targetSets: 4,
+        defaultReps: 8,
+        restSeconds: 60,
+        setsTemplate: DEFAULT_SETS_TEMPLATE,
+      },
     ],
   },
   {
-    id: 'routine-push-day',
-    title: 'PUSH_DAY',
-    description: 'Panca inclinata, dips zavorrati, lento manubri, alzate laterali, french press',
+    id: 'routine-scheda-c',
+    title: 'SCHEDA_C',
+    description: 'Pulley basso, croci ai cavi, leg extension, push down, curl martello',
     defaultRestSeconds: 90,
     createdAt: 1700000000000,
     updatedAt: 1700000000000,
     exercises: [
-      { exerciseId: 'incline-dumbbell-press', name: 'Incline Dumbbell Press', muscleGroup: 'chest', targetSets: 4, defaultReps: 8, restSeconds: 120 },
-      { exerciseId: 'chest-dips', name: 'Weighted Dips (Chest)', muscleGroup: 'chest', targetSets: 3, defaultReps: 10, restSeconds: 90 },
-      { exerciseId: 'seated-dumbbell-shoulder-press', name: 'Seated Dumbbell Shoulder Press', muscleGroup: 'shoulders', targetSets: 3, defaultReps: 10, restSeconds: 90 },
-      { exerciseId: 'dumbbell-lateral-raise', name: 'Dumbbell Lateral Raise', muscleGroup: 'shoulders', targetSets: 4, defaultReps: 15, restSeconds: 60 },
-      { exerciseId: 'skullcrushers', name: 'Barbell Skullcrushers (Lying Ext)', muscleGroup: 'arms', targetSets: 3, defaultReps: 10, restSeconds: 60 },
+      {
+        exerciseId: 'seated-cable-row',
+        name: 'Pulley Basso',
+        muscleGroup: 'back',
+        targetSets: 4,
+        defaultReps: 8,
+        restSeconds: 90,
+        setsTemplate: DEFAULT_SETS_TEMPLATE,
+      },
+      {
+        exerciseId: 'cable-chest-crossover',
+        name: 'Croci ai Cavi',
+        muscleGroup: 'chest',
+        targetSets: 4,
+        defaultReps: 8,
+        restSeconds: 60,
+        setsTemplate: DEFAULT_SETS_TEMPLATE,
+      },
+      {
+        exerciseId: 'leg-extension',
+        name: 'Leg Extension',
+        muscleGroup: 'legs',
+        targetSets: 4,
+        defaultReps: 8,
+        restSeconds: 90,
+        setsTemplate: DEFAULT_SETS_TEMPLATE,
+      },
+      {
+        exerciseId: 'tricep-rope-pushdown',
+        name: 'Push Down',
+        muscleGroup: 'arms',
+        targetSets: 4,
+        defaultReps: 8,
+        restSeconds: 60,
+        setsTemplate: DEFAULT_SETS_TEMPLATE,
+      },
+      {
+        exerciseId: 'dumbbell-hammer-curl',
+        name: 'Curl Martello',
+        muscleGroup: 'arms',
+        targetSets: 4,
+        defaultReps: 8,
+        restSeconds: 60,
+        setsTemplate: DEFAULT_SETS_TEMPLATE,
+      },
     ],
   },
-  {
-    id: 'routine-pull-day',
-    title: 'PULL_DAY',
-    description: 'Stacco da terra, lat machine, pulley, face pull, hammer curl',
-    defaultRestSeconds: 90,
-    createdAt: 1700000000000,
-    updatedAt: 1700000000000,
-    exercises: [
-      { exerciseId: 'conventional-deadlift', name: 'Barbell Deadlift', muscleGroup: 'back', targetSets: 4, defaultReps: 5, restSeconds: 150 },
-      { exerciseId: 'lat-pulldown', name: 'Lat Pulldown', muscleGroup: 'back', targetSets: 4, defaultReps: 10, restSeconds: 90 },
-      { exerciseId: 'seated-cable-row', name: 'Seated Cable Row', muscleGroup: 'back', targetSets: 3, defaultReps: 10, restSeconds: 90 },
-      { exerciseId: 'face-pull', name: 'Face Pull', muscleGroup: 'back', targetSets: 4, defaultReps: 15, restSeconds: 60 },
-      { exerciseId: 'incline-dumbbell-curl', name: 'Incline Dumbbell Curl', muscleGroup: 'arms', targetSets: 3, defaultReps: 12, restSeconds: 60 },
-    ],
-  },
+];
+
+const LEGACY_DEFAULT_IDS = [
+  'routine-upper-a',
+  'routine-lower-b',
+  'routine-push-day',
+  'routine-pull-day',
 ];
 
 export const routineService = {
@@ -90,6 +210,17 @@ export const routineService = {
     if (raw) {
       try {
         localList = JSON.parse(raw);
+        // Purge legacy default routines if present
+        const hasLegacy = localList.some((r) => LEGACY_DEFAULT_IDS.includes(r.id));
+        if (hasLegacy) {
+          localList = localList.filter((r) => !LEGACY_DEFAULT_IDS.includes(r.id));
+          for (const newDef of INITIAL_DEFAULT_ROUTINES) {
+            if (!localList.some((r) => r.id === newDef.id)) {
+              localList.push(newDef);
+            }
+          }
+          localStorage.setItem(`${LOCAL_STORAGE_ROUTINES_KEY}_${userId}`, JSON.stringify(localList));
+        }
       } catch {
         localList = [];
       }
@@ -107,7 +238,10 @@ export const routineService = {
       const q = collection(db, 'users', userId, 'routines');
       const snap = await getDocs(q);
       if (!snap.empty) {
-        const firestoreList = snap.docs.map((d) => d.data() as WorkoutRoutine);
+        let firestoreList = snap.docs.map((d) => d.data() as WorkoutRoutine);
+        // Purge legacy defaults from firestore list as well
+        firestoreList = firestoreList.filter((r) => !LEGACY_DEFAULT_IDS.includes(r.id));
+
         // Merge with local list, deduplicated by id
         const map = new Map<string, WorkoutRoutine>();
         localList.forEach((r) => map.set(r.id, r));
@@ -195,9 +329,27 @@ export const routineService = {
     const todayStr = new Date().toISOString().split('T')[0];
 
     const exercises: WorkoutExercise[] = routine.exercises.map((re) => {
-      const setsCount = re.targetSets || 3;
       const initialWeight = re.defaultWeight || bestWeightsMap[re.exerciseId] || 0;
-      const initialReps = re.defaultReps || 8;
+
+      let sets: WorkoutSet[];
+      if (re.setsTemplate && re.setsTemplate.length > 0) {
+        sets = re.setsTemplate.map((st) => ({
+          id: generateId(),
+          weight: st.weight !== undefined ? st.weight : initialWeight,
+          reps: st.reps,
+          isWarmup: st.isWarmup ?? false,
+          completed: false,
+        }));
+      } else {
+        const setsCount = re.targetSets || 4;
+        const initialReps = re.defaultReps || 8;
+        sets = Array.from({ length: setsCount }).map(() => ({
+          id: generateId(),
+          weight: initialWeight,
+          reps: initialReps,
+          completed: false,
+        }));
+      }
 
       return {
         id: generateId(),
@@ -206,12 +358,7 @@ export const routineService = {
         muscleGroup: re.muscleGroup as MuscleGroup,
         notes: re.notes,
         restSeconds: re.restSeconds ?? routine.defaultRestSeconds ?? 90,
-        sets: Array.from({ length: setsCount }).map(() => ({
-          id: generateId(),
-          weight: initialWeight,
-          reps: initialReps,
-          completed: false,
-        })),
+        sets,
       };
     });
 
