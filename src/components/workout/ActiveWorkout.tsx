@@ -1,9 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
   Plus,
-  CheckCircle2,
-  XCircle,
-  Clock,
   Dumbbell,
   Edit2,
   Check,
@@ -15,6 +12,7 @@ import { RestTimer } from './RestTimer';
 import { ExerciseCombobox } from './ExerciseCombobox';
 import { ExerciseHistoryDrawer } from './ExerciseHistoryDrawer';
 import { Button } from '../ui/button';
+import { AsciiBox } from '../ui/ascii-box';
 import {
   Drawer,
   DrawerContent,
@@ -97,7 +95,6 @@ export function ActiveWorkout({
     muscleGroup: MuscleGroup;
     isCustom: boolean;
   }) => {
-    // Look up previous performance history for this exercise
     const prevHistory = getExerciseHistory(selected.id, history || [], selected.name, selected.muscleGroup);
     const lastSets = prevHistory.lastPerformanceSets;
     const initialWeight =
@@ -181,83 +178,94 @@ export function ActiveWorkout({
     );
   }, 0);
 
+  // Compute 10-char ASCII progress bar for sets
+  const setsRatio = totalSets > 0 ? completedSets / totalSets : 0;
+  const setsFilled = Math.min(10, Math.round(setsRatio * 10));
+  const setsAsciiBar = '█'.repeat(setsFilled) + '░'.repeat(10 - setsFilled);
+
   return (
-    <div className="flex-1 flex flex-col space-y-3 px-3 pt-3 pb-36">
-      {/* Active Workout Header */}
-      <div className="rounded border border-border bg-card p-3 shadow-xs">
-        <div className="flex items-center justify-between">
-          {/* Editable Title */}
-          {isEditingTitle ? (
-            <div className="flex items-center gap-1.5 flex-1 pr-2">
-              <input
-                type="text"
-                value={tempTitle}
-                onChange={(e) => setTempTitle(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && saveTitle()}
-                className="h-9 w-full rounded border border-primary bg-background px-2 text-sm font-bold font-mono text-foreground focus:outline-none"
-                autoFocus
-              />
-              <Button size="iconSm" variant="primary" onClick={saveTitle} className="h-9 w-9">
-                <Check className="h-4 w-4" strokeWidth={2} />
-              </Button>
-            </div>
-          ) : (
-            <div
-              onClick={() => {
-                setTempTitle(session.title);
-                setIsEditingTitle(true);
-              }}
-              className="flex items-center gap-1.5 cursor-pointer group"
-              title="Click to edit session name"
-            >
-              <h2 className="text-sm font-bold font-mono text-foreground tracking-tight">
-                {session.title}
-              </h2>
-              <Edit2 className="h-3 w-3 text-muted-foreground opacity-60 group-hover:opacity-100" strokeWidth={1.75} />
-            </div>
-          )}
+    <div className="flex-1 flex flex-col space-y-3 px-3 pt-3 pb-36 font-mono">
+      {/* Active Workout Prompt Header */}
+      <AsciiBox
+        variant="accent"
+        title="ACTIVE_SESSION // MONITOR"
+        status={
+          <div className="flex items-center gap-1 text-accent font-bold tabular-nums">
+            <span>[⏱</span>
+            <span>{formatDuration(elapsedSeconds)}]</span>
+          </div>
+        }
+        action={
+          <button
+            type="button"
+            onClick={() => onSaveAsRoutine(session)}
+            className="flex h-6 items-center gap-1 rounded-[2px] border border-border bg-secondary/80 px-1.5 text-[9px] font-mono text-muted-foreground hover:text-accent hover:border-accent transition-colors"
+            title="Salva come scheda"
+          >
+            <BookmarkPlus className="h-2.5 w-2.5 text-accent" />
+            <span>[SAVE_BLUEPRINT]</span>
+          </button>
+        }
+      >
+        <div className="space-y-2">
+          {/* Editable Session Title Prompt */}
+          <div className="flex items-center justify-between">
+            {isEditingTitle ? (
+              <div className="flex items-center gap-1.5 flex-1 pr-2">
+                <input
+                  type="text"
+                  value={tempTitle}
+                  onChange={(e) => setTempTitle(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && saveTitle()}
+                  className="h-8 w-full rounded-[2px] border border-accent bg-background px-2 text-xs font-bold font-mono text-foreground focus:outline-none"
+                  autoFocus
+                />
+                <Button size="compact" variant="primary" onClick={saveTitle}>
+                  <Check className="h-3 w-3" />
+                </Button>
+              </div>
+            ) : (
+              <div
+                onClick={() => {
+                  setTempTitle(session.title);
+                  setIsEditingTitle(true);
+                }}
+                className="flex items-center gap-1.5 cursor-pointer group"
+                title="Tocca per rinominare sessione"
+              >
+                <span className="text-muted-foreground select-none">&gt;</span>
+                <h2 className="text-sm font-black font-mono text-foreground tracking-tight hover:text-accent transition-colors">
+                  {session.title}
+                </h2>
+                <Edit2 className="h-3 w-3 text-muted-foreground opacity-60 group-hover:opacity-100" />
+              </div>
+            )}
+          </div>
 
-          {/* Session Timer & Save As Routine Action */}
-          <div className="flex items-center gap-1.5 shrink-0">
-            <button
-              type="button"
-              onClick={() => onSaveAsRoutine(session)}
-              className="flex h-8 items-center gap-1 rounded border border-border bg-secondary/80 px-2 text-[10px] font-mono text-muted-foreground hover:text-primary hover:border-primary/50 transition-colors"
-              title="Salva questa sessione come scheda"
-            >
-              <BookmarkPlus className="h-3 w-3 text-primary" strokeWidth={2} />
-              <span>SALVA_SCHEDA</span>
-            </button>
-
-            <div className="flex items-center gap-1.5 rounded bg-secondary/80 px-2 py-1 text-xs font-mono font-semibold text-foreground border border-border tabular-nums">
-              <Clock className="h-3.5 w-3.5 text-primary" strokeWidth={2} />
-              <span>{formatDuration(elapsedSeconds)}</span>
+          {/* Telemetry Bar */}
+          <div className="flex items-center justify-between border-t border-border/50 pt-2 text-[10px] font-mono text-muted-foreground tabular-nums flex-wrap gap-1">
+            <div className="flex items-center gap-1">
+              <span>SETS:</span>
+              <span className="text-accent font-bold">[{setsAsciiBar}]</span>
+              <span>{completedSets}/{totalSets}</span>
+            </div>
+            <span className="text-border">│</span>
+            <div>
+              <span>VOL:</span>{' '}
+              <span className="text-foreground font-semibold">
+                {totalVolumeKg.toLocaleString()}kg
+              </span>
+            </div>
+            <span className="text-border">│</span>
+            <div>
+              <span>EX:</span>{' '}
+              <span className="text-foreground font-semibold">
+                {session.exercises.length}
+              </span>
             </div>
           </div>
         </div>
-
-        {/* Quick Summary Pill Bar */}
-        <div className="mt-2.5 flex items-center justify-between border-t border-border/50 pt-2 text-[10px] font-mono text-muted-foreground">
-          <div>
-            SETS:{' '}
-            <span className="text-accent font-bold">
-              {completedSets}/{totalSets}
-            </span>
-          </div>
-          <div>
-            VOLUME:{' '}
-            <span className="text-foreground font-semibold">
-              {totalVolumeKg.toLocaleString()}kg
-            </span>
-          </div>
-          <div>
-            EXERCISES:{' '}
-            <span className="text-foreground font-semibold">
-              {session.exercises.length}
-            </span>
-          </div>
-        </div>
-      </div>
+      </AsciiBox>
 
       {/* Rest Timer Widget */}
       <RestTimer
@@ -300,13 +308,13 @@ export function ActiveWorkout({
         })}
 
         {session.exercises.length === 0 && (
-          <div className="rounded border border-dashed border-border bg-card/30 p-8 text-center">
-            <Dumbbell className="mx-auto h-8 w-8 text-muted-foreground/40 mb-2" strokeWidth={1.5} />
-            <p className="text-xs font-mono text-muted-foreground">
-              NO_EXERCISES_ADDED_YET
+          <div className="rounded-[2px] border border-dashed border-border bg-card/30 p-8 text-center space-y-1">
+            <Dumbbell className="mx-auto h-7 w-7 text-muted-foreground/30 mb-2" strokeWidth={1.5} />
+            <p className="text-xs font-mono font-bold text-muted-foreground uppercase">
+              NESSUN_ESERCIZIO_AGGIUNTO
             </p>
-            <p className="text-[11px] font-mono text-muted-foreground/60 mt-1">
-              Tap below to search seed database or create custom movement
+            <p className="text-[11px] font-mono text-muted-foreground/60">
+              Tocca il pulsante qui sotto per aggiungere movimenti a questa sessione.
             </p>
           </div>
         )}
@@ -317,18 +325,18 @@ export function ActiveWorkout({
         variant="default"
         size="lg"
         onClick={() => setComboboxOpen(true)}
-        className="w-full border-dashed border-border/80 hover:border-primary/60 font-mono tracking-wider text-xs"
+        className="w-full border-dashed border-border/80 hover:border-accent hover:text-accent font-mono tracking-wider text-xs"
       >
         <Plus className="mr-2 h-4 w-4" strokeWidth={2} />
-        + ADD_EXERCISE
+        [ + AGGIUNGI_ESERCIZIO ]
       </Button>
 
-      {/* ALWAYS VISIBLE PINNED BOTTOM ACTION BAR (Above the main navigation dock) */}
+      {/* ALWAYS VISIBLE PINNED BOTTOM ACTION BAR */}
       <div
-        className="fixed left-0 right-0 z-30 border-t border-border bg-background shadow-2xl"
-        style={{ bottom: 'calc(3.5rem + env(safe-area-inset-bottom, 0px))' }}
+        className="fixed left-0 right-0 z-30 border-t border-border bg-background"
+        style={{ bottom: 'calc(2.75rem + env(safe-area-inset-bottom, 0px))' }}
       >
-        <div className="mx-auto flex max-w-md items-center justify-between gap-2.5 px-3 py-2">
+        <div className="mx-auto flex max-w-md items-center justify-between gap-2 px-3 py-2">
           {/* Always Visible DISCARD Button */}
           <Button
             type="button"
@@ -337,20 +345,18 @@ export function ActiveWorkout({
             className="flex-1 max-w-[130px] font-mono text-xs tracking-wider h-11"
             title="Annulla sessione"
           >
-            <XCircle className="mr-1.5 h-3.5 w-3.5" strokeWidth={2} />
-            DISCARD
+            [ ✕ DISCARD ]
           </Button>
 
           {/* Always Visible FINISH Button */}
           <Button
             type="button"
-            variant="accent"
+            variant="primary"
             onClick={() => setShowFinishConfirm(true)}
             className="flex-1 font-mono text-xs tracking-wider h-11"
             title="Termina e registra sessione"
           >
-            <CheckCircle2 className="mr-1.5 h-4 w-4" strokeWidth={2.5} />
-            <span>FINISH ({completedSets}/{totalSets})</span>
+            <span>[ ✓ FINISH ({completedSets}/{totalSets}) ↵ ]</span>
           </Button>
         </div>
       </div>
@@ -383,29 +389,29 @@ export function ActiveWorkout({
           </DrawerHeader>
 
           <DrawerBody className="space-y-3">
-            {/* Option to also save as routine */}
-            <div className="rounded border border-border bg-background p-3">
-              <label className="flex items-center gap-2.5 cursor-pointer text-xs font-mono text-foreground select-none">
-                <input
-                  type="checkbox"
-                  checked={saveAsRoutineCheck}
-                  onChange={(e) => setSaveAsRoutineCheck(e.target.checked)}
-                  className="h-4 w-4 rounded border-input bg-card accent-accent cursor-pointer"
-                />
-                <span className="font-semibold">Salva anche come scheda riutilizzabile</span>
-              </label>
-              <p className="text-[10px] font-mono text-muted-foreground mt-1 pl-6">
-                Verrà creata la scheda &quot;{session.title.replace(/_\d{4}-\d{2}-\d{2}/, '')}&quot; con questi esercizi per riutilizzarla nei prossimi allenamenti.
+            {/* ASCII Toggle to also save as routine */}
+            <div
+              onClick={() => setSaveAsRoutineCheck(!saveAsRoutineCheck)}
+              className="rounded-[2px] border border-border bg-secondary/40 p-3 cursor-pointer select-none space-y-1 hover:border-accent transition-colors"
+            >
+              <div className="flex items-center gap-2 text-xs font-mono text-foreground font-bold">
+                <span className={`font-mono text-sm font-bold ${saveAsRoutineCheck ? 'text-accent' : 'text-muted-foreground'}`}>
+                  {saveAsRoutineCheck ? '[x]' : '[ ]'}
+                </span>
+                <span>SALVA_ANCHE_COME_SCHEDA_RIUTILIZZABILE</span>
+              </div>
+              <p className="text-[10px] font-mono text-muted-foreground pl-6">
+                Verrà creata una scheda preimpostata &quot;{session.title.replace(/_\d{4}-\d{2}-\d{2}/, '')}&quot; per riutilizzarla nei prossimi allenamenti.
               </p>
             </div>
           </DrawerBody>
 
           <DrawerFooter>
             <Button variant="outline" onClick={() => setShowFinishConfirm(false)}>
-              CONTINUA
+              [ ANNULLA ]
             </Button>
             <Button
-              variant="accent"
+              variant="primary"
               onClick={() => {
                 setShowFinishConfirm(false);
                 onFinishSession(
@@ -418,7 +424,7 @@ export function ActiveWorkout({
                 );
               }}
             >
-              SALVA_E_REGISTRA
+              [ ✓ CONFERMA_E_SALVA ↵ ]
             </Button>
           </DrawerFooter>
         </DrawerContent>
@@ -430,12 +436,12 @@ export function ActiveWorkout({
           <DrawerHeader>
             <DrawerTitle className="text-destructive">DISCARD_WORKOUT_SESSION?</DrawerTitle>
             <DrawerDescription>
-              Vuoi scartare questo allenamento? Tutte le serie registrate in questa sessione andranno perse.
+              Attenzione: tutte le serie registrate in questa sessione andranno perse in modo irreversibile.
             </DrawerDescription>
           </DrawerHeader>
           <DrawerFooter>
             <Button variant="outline" onClick={() => setShowCancelConfirm(false)}>
-              CONTINUA_SESSIONE
+              [ CONTINUA_SESSIONE ]
             </Button>
             <Button
               variant="destructive"
@@ -444,7 +450,7 @@ export function ActiveWorkout({
                 onCancelSession();
               }}
             >
-              CONFERMA_DISCARD
+              [ ✕ CONFERMA_DISCARD ]
             </Button>
           </DrawerFooter>
         </DrawerContent>

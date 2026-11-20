@@ -1,4 +1,4 @@
-import { Play, Plus, Bookmark, Clock, ChevronRight } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import {
   Drawer,
   DrawerContent,
@@ -9,6 +9,7 @@ import {
 } from '../ui/drawer';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
+import { AsciiBox } from '../ui/ascii-box';
 import { WorkoutRoutine } from '../../types/workout';
 import { formatShortDate } from '../../lib/utils';
 
@@ -46,28 +47,25 @@ export function StartWorkoutDrawer({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="max-h-[88dvh]">
+      <DrawerContent className="max-h-[88dvh] font-mono">
         <DrawerHeader>
-          <DrawerTitle className="flex items-center gap-2 font-mono text-sm uppercase">
-            <Play className="h-4 w-4 text-accent fill-current" />
-            <span>&gt; INIZIA_ALLENAMENTO</span>
+          <DrawerTitle className="flex items-center gap-1.5 font-mono text-xs uppercase">
+            <span className="text-accent select-none font-bold">&gt;</span>
+            <span>INIZIA_ALLENAMENTO</span>
           </DrawerTitle>
-          <DrawerDescription className="font-mono text-xs text-muted-foreground">
+          <DrawerDescription className="font-mono text-[11px] text-muted-foreground">
             Seleziona una scheda salvata o avvia una sessione libera.
           </DrawerDescription>
         </DrawerHeader>
 
-        <DrawerBody className="space-y-3.5">
+        <DrawerBody className="space-y-3">
           {/* Option 1: Empty workout session */}
-          <div className="rounded border border-primary/50 bg-secondary/30 p-3 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-primary font-bold">
-                [SESSIONE_LIBERA]
-              </span>
-              <Badge variant="primary" className="text-[9px]">
-                VUOTA
-              </Badge>
-            </div>
+          <AsciiBox
+            variant="accent"
+            title="SESSIONE_LIBERA"
+            status={<Badge variant="primary" className="text-[9px]">VUOTA</Badge>}
+            className="space-y-2"
+          >
             <p className="text-xs font-mono text-foreground font-semibold">
               Inizia senza scheda preimpostata e aggiungi gli esercizi sul momento.
             </p>
@@ -77,26 +75,20 @@ export function StartWorkoutDrawer({
               onClick={handleStartEmpty}
               className="w-full text-xs font-mono font-bold tracking-wider h-11"
             >
-              <Play className="mr-1.5 h-3.5 w-3.5 fill-current" />
-              AVVIA_SESSIONE_LIBERA
+              [ ▶ AVVIA_SESSIONE_LIBERA ↵ ]
             </Button>
-          </div>
+          </AsciiBox>
 
           {/* Option 2: Choose from user's routines */}
           <div className="space-y-2 pt-1">
             <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-semibold px-0.5">
-              <div className="flex items-center gap-1.5">
-                <Bookmark className="h-3.5 w-3.5 text-primary" strokeWidth={2} />
-                <span>LE_TUE_SCHEDE ({routines.length})</span>
-              </div>
-
+              <span>LE_TUE_SCHEDE ({routines.length})</span>
               <button
                 type="button"
                 onClick={handleCreate}
-                className="flex items-center gap-1 text-[10px] font-mono text-primary font-bold hover:underline"
+                className="text-[10px] font-mono text-accent font-bold hover:underline"
               >
-                <Plus className="h-3 w-3" strokeWidth={2} />
-                <span>NUOVA</span>
+                [ + NUOVA ]
               </button>
             </div>
 
@@ -106,7 +98,7 @@ export function StartWorkoutDrawer({
                   <div
                     key={routine.id}
                     onClick={() => handleStartRoutine(routine)}
-                    className="cursor-pointer rounded border border-border bg-card p-3 hover:border-accent hover:bg-secondary/40 active:bg-secondary transition-all space-y-2 group"
+                    className="cursor-pointer rounded-[2px] border border-border bg-card p-3 hover:border-accent hover:bg-secondary/40 active:bg-secondary transition-all space-y-2 group select-none"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
@@ -114,9 +106,9 @@ export function StartWorkoutDrawer({
                           <h4 className="text-sm font-bold font-mono text-foreground group-hover:text-accent transition-colors truncate">
                             {routine.title}
                           </h4>
-                          <span className="text-[10px] font-mono text-muted-foreground">
-                            • {routine.exercises.length} es.
-                          </span>
+                          <Badge variant="outline" className="text-[9px]">
+                            {`${routine.exercises.length} ES.`}
+                          </Badge>
                         </div>
 
                         {routine.description && (
@@ -134,8 +126,7 @@ export function StartWorkoutDrawer({
                       </div>
 
                       <div className="flex items-center gap-1 text-xs font-mono font-bold text-accent shrink-0 pt-0.5">
-                        <span>AVVIA</span>
-                        <ChevronRight className="h-4 w-4" />
+                        <span>[ ▶ AVVIA ]</span>
                       </div>
                     </div>
                   </div>
@@ -143,7 +134,7 @@ export function StartWorkoutDrawer({
               })}
 
               {routines.length === 0 && (
-                <div className="rounded border border-dashed border-border p-4 text-center text-xs font-mono text-muted-foreground">
+                <div className="rounded-[2px] border border-dashed border-border p-4 text-center text-xs font-mono text-muted-foreground">
                   Nessuna scheda creata finora.
                 </div>
               )}

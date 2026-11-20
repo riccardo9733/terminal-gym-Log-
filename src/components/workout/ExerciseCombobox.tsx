@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Plus, Sparkles } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import {
   Drawer,
   DrawerContent,
@@ -160,32 +160,33 @@ export function ExerciseCombobox({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="p-0 sm:max-w-md max-h-[88dvh] flex flex-col gap-0 border-border bg-card">
+      <DrawerContent className="p-0 sm:max-w-md max-h-[88dvh] flex flex-col gap-0 border-border bg-card font-mono">
         <DrawerHeader className="p-3 border-b border-border">
           <DrawerTitle className="text-xs font-mono tracking-wider uppercase text-foreground">
-            SELECT_OR_CREATE_EXERCISE
+            &gt; SELEZIONA_O_CREA_ESERCIZIO
           </DrawerTitle>
         </DrawerHeader>
 
-        {/* Muscle group filter pills */}
-        <div className="flex items-center gap-1 overflow-x-auto px-3 py-2 border-b border-border/60 no-scrollbar">
+        {/* Muscle group filter bracketed buttons */}
+        <div className="flex items-center gap-1 overflow-x-auto px-3 py-2 border-b border-border/60 no-scrollbar bg-secondary/30">
           {MUSCLE_FILTER_OPTIONS.map((opt) => (
             <button
               key={opt.value}
               onClick={() => setSelectedMuscle(opt.value)}
-              className={`shrink-0 rounded px-2 py-1 text-[10px] font-mono tracking-wider transition-colors border ${selectedMuscle === opt.value
-                  ? 'bg-primary text-primary-foreground border-primary'
+              className={`shrink-0 rounded-[2px] px-2 py-1 text-[10px] font-mono tracking-wider transition-colors border select-none ${
+                selectedMuscle === opt.value
+                  ? 'bg-accent text-background border-accent font-extrabold'
                   : 'bg-secondary/60 text-muted-foreground border-border hover:text-foreground'
-                }`}
+              }`}
             >
-              {opt.label}
+              [{opt.label}]
             </button>
           ))}
         </div>
 
-        <Command className="flex-1 overflow-hidden" shouldFilter={false}>
+        <Command className="flex-1 overflow-hidden border-0" shouldFilter={false}>
           <CommandInput
-            placeholder="Search exercise (or type to create)..."
+            placeholder="grep esercizio (o digita per creare)..."
             value={searchQuery}
             onValueChange={setSearchQuery}
           />
@@ -197,14 +198,14 @@ export function ExerciseCombobox({
                 <button
                   type="button"
                   onClick={handleCreateCustom}
-                  className="w-full flex items-center justify-between rounded bg-primary/10 border border-primary/40 px-3 py-2.5 text-xs font-mono text-primary hover:bg-primary/20 active:bg-primary/30 transition-colors"
+                  className="w-full flex items-center justify-between rounded-[2px] bg-accent/15 border border-accent/40 px-3 py-2.5 text-xs font-mono text-accent hover:bg-accent/25 active:bg-accent/30 transition-colors"
                 >
                   <div className="flex items-center gap-2">
                     <Plus className="h-4 w-4" strokeWidth={2} />
-                    <span className="font-bold">CREATE &quot;{searchQuery.trim()}&quot;</span>
+                    <span className="font-bold">[ + CREA &quot;{searchQuery.trim()}&quot; ]</span>
                   </div>
-                  <Badge variant="primary" className="text-[9px]">
-                    NEW
+                  <Badge variant="accent" className="text-[9px]">
+                    NUOVO
                   </Badge>
                 </button>
               </div>
@@ -212,7 +213,7 @@ export function ExerciseCombobox({
 
             {filteredList.length === 0 && !searchQuery.trim() ? (
               <div className="py-6 text-center text-xs text-muted-foreground font-mono">
-                No exercises found.
+                Nessun esercizio trovato.
               </div>
             ) : (
               <CommandGroup heading={`MATCHES (${filteredList.length})`}>
@@ -221,29 +222,29 @@ export function ExerciseCombobox({
                     key={item.id}
                     value={item.id}
                     onSelect={() => handleSelect(item)}
-                    className="flex items-center justify-between py-2.5 px-3 hover:bg-secondary/80 border-b border-border/20 last:border-b-0"
+                    className="flex items-center justify-between py-2.5 px-3 hover:bg-secondary/80 border-b border-border/20 last:border-b-0 rounded-[2px]"
                   >
                     <div className="flex flex-col gap-0.5 min-w-0 pr-2">
                       <div className="flex items-center gap-1.5">
-                        <span className="font-semibold text-foreground truncate">
+                        <span className="font-bold text-foreground truncate">
                           {item.name}
                         </span>
                         {item.isCustom && (
-                          <Sparkles className="h-3 w-3 text-warning shrink-0" strokeWidth={2} />
+                          <span className="text-warning text-[10px] font-bold">[CUSTOM]</span>
                         )}
                       </div>
-                      <span className="text-[10px] text-muted-foreground capitalize">
+                      <span className="text-[10px] text-muted-foreground uppercase">
                         {item.muscleGroup}
                       </span>
                     </div>
 
                     <div className="flex items-center gap-1.5 shrink-0">
                       {item.usageCount > 0 && (
-                        <span className="text-[9px] text-muted-foreground font-mono">
+                        <span className="text-[10px] text-muted-foreground font-mono tabular-nums">
                           {item.usageCount}×
                         </span>
                       )}
-                      <Badge variant="outline" className="text-[9px] py-0 px-1 border-border">
+                      <Badge variant="outline" className="text-[9px]">
                         {item.muscleGroup.substring(0, 4).toUpperCase()}
                       </Badge>
                     </div>

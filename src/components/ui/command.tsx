@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { Command as CommandPrimitive } from 'cmdk';
-import { Search } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 export const Command = ({
@@ -9,7 +8,7 @@ export const Command = ({
 }: React.ComponentPropsWithoutRef<typeof CommandPrimitive>) => (
   <CommandPrimitive
     className={cn(
-      'flex h-full w-full flex-col overflow-hidden rounded bg-card text-foreground font-mono',
+      'flex h-full w-full flex-col overflow-hidden rounded-[2px] bg-card text-foreground font-mono border border-border',
       className
     )}
     {...props}
@@ -20,15 +19,16 @@ export const CommandInput = ({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>) => (
-  <div className="flex items-center border-b border-border px-3" cmdk-input-wrapper="">
-    <Search className="mr-2 h-4 w-4 shrink-0 text-muted-foreground" strokeWidth={1.75} />
+  <div className="flex items-center border-b border-border px-3 bg-secondary/30" cmdk-input-wrapper="">
+    <span className="mr-2 text-xs font-mono font-bold text-accent select-none">$</span>
     <CommandPrimitive.Input
       className={cn(
-        'flex h-12 w-full bg-transparent py-3 text-base outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 font-mono',
+        'flex h-11 w-full bg-transparent py-2 text-xs outline-none placeholder:text-muted-foreground/50 disabled:cursor-not-allowed disabled:opacity-50 font-mono tracking-wide',
         className
       )}
       {...props}
     />
+    <span className="text-accent animate-pulse font-mono font-bold select-none text-xs">█</span>
   </div>
 );
 
@@ -45,7 +45,7 @@ export const CommandList = ({
 export const CommandEmpty = ({
   ...props
 }: React.ComponentPropsWithoutRef<typeof CommandPrimitive.Empty>) => (
-  <CommandPrimitive.Empty className="py-6 text-center text-xs text-muted-foreground" {...props} />
+  <CommandPrimitive.Empty className="py-6 text-center text-xs font-mono text-muted-foreground" {...props} />
 );
 
 export const CommandGroup = ({
@@ -54,7 +54,7 @@ export const CommandGroup = ({
 }: React.ComponentPropsWithoutRef<typeof CommandPrimitive.Group>) => (
   <CommandPrimitive.Group
     className={cn(
-      'overflow-hidden p-1 text-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-muted-foreground',
+      'overflow-hidden p-1 text-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-muted-foreground',
       className
     )}
     {...props}
@@ -67,7 +67,7 @@ export const CommandItem = ({
 }: React.ComponentPropsWithoutRef<typeof CommandPrimitive.Item>) => (
   <CommandPrimitive.Item
     className={cn(
-      'relative flex cursor-pointer select-none items-center rounded px-2 py-2 text-xs font-mono outline-none data-[disabled=true]:pointer-events-none data-[selected=true]:bg-secondary data-[selected=true]:text-foreground data-[disabled=true]:opacity-50 min-h-[44px]',
+      'relative flex cursor-pointer select-none items-center rounded-[2px] px-2 py-2 text-xs font-mono outline-none data-[disabled=true]:pointer-events-none data-[selected=true]:bg-accent/15 data-[selected=true]:text-accent data-[disabled=true]:opacity-50 min-h-[44px] transition-colors',
       className
     )}
     {...props}

@@ -3,31 +3,32 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '../../lib/utils';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center whitespace-nowrap text-xs font-semibold uppercase tracking-wider transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-40 select-none active:translate-y-[1px]',
+  'inline-flex items-center justify-center whitespace-nowrap text-xs font-bold font-mono uppercase tracking-wider transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent disabled:pointer-events-none disabled:opacity-40 select-none active:translate-y-[1px] rounded-[2px]',
   {
     variants: {
       variant: {
         default:
-          'bg-card text-foreground border border-border hover:bg-secondary hover:border-primary/50',
+          'bg-secondary/90 text-foreground border border-border hover:bg-secondary hover:border-accent/50',
         primary:
-          'bg-primary text-primary-foreground border border-primary hover:bg-primary/90',
+          'bg-accent text-background border border-accent hover:bg-accent/90 font-extrabold',
         accent:
-          'bg-accent text-accent-foreground font-bold border border-accent hover:bg-accent/90',
+          'bg-accent text-background border border-accent hover:bg-accent/90 font-extrabold',
         destructive:
-          'bg-destructive/15 text-destructive border border-destructive/40 hover:bg-destructive/25',
+          'bg-destructive/15 text-destructive border border-destructive/40 hover:bg-destructive/30 hover:border-destructive',
         secondary:
-          'bg-secondary text-foreground border border-border hover:bg-secondary/80',
+          'bg-secondary/80 text-foreground border border-border hover:bg-secondary hover:border-border/80',
         ghost:
-          'hover:bg-secondary text-muted-foreground hover:text-foreground',
+          'bg-transparent hover:bg-secondary text-muted-foreground hover:text-foreground border border-transparent hover:border-border',
         outline:
-          'border border-border bg-transparent hover:bg-secondary text-foreground',
+          'border border-border bg-transparent hover:bg-secondary/60 text-foreground hover:border-border/80',
       },
       size: {
         default: 'h-11 px-4 py-2 min-h-[44px]',
         sm: 'h-9 px-3 min-h-[36px] text-[11px]',
-        lg: 'h-12 px-6 min-h-[48px] text-sm',
+        lg: 'h-12 px-6 min-h-[48px] text-xs',
         icon: 'h-11 w-11 min-h-[44px] min-w-[44px]',
         iconSm: 'h-9 w-9 min-h-[36px] min-w-[36px]',
+        compact: 'h-7 px-2 text-[10px] min-h-[28px]',
       },
     },
     defaultVariants: {
@@ -49,7 +50,7 @@ export const Button = ({
 }: ButtonProps) => {
   return (
     <button
-      className={cn(buttonVariants({ variant, size, className }), 'rounded')}
+      className={cn(buttonVariants({ variant, size, className }))}
       {...props}
     />
   );

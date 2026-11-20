@@ -1,17 +1,12 @@
 import { useState, useMemo } from 'react';
 import {
-  Calendar,
-  Clock,
   ChevronRight,
   ChevronDown,
-  RotateCcw,
-  Trash2,
-  TrendingUp,
-  Search,
 } from 'lucide-react';
 import { WorkoutSession, MuscleGroup } from '../../types/workout';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
+import { AsciiBox } from '../ui/ascii-box';
 import { formatDate, formatDuration } from '../../lib/utils';
 import { ExerciseHistoryDrawer } from './ExerciseHistoryDrawer';
 import { getExerciseHistory, ExerciseHistorySummary } from '../../services/exerciseHistoryService';
@@ -53,34 +48,34 @@ export function HistoryView({
   };
 
   return (
-    <div className="flex-1 flex flex-col space-y-3 px-3 pt-3 pb-24">
+    <div className="flex-1 flex flex-col space-y-3 px-3 pt-3 pb-24 font-mono">
       {/* Header with Machine Ticker */}
-      <div className="flex items-center justify-between border-b border-border/60 pb-2">
+      <div className="flex items-center justify-between border-b border-border/80 pb-2">
         <div className="flex items-center gap-1.5">
-          <Calendar className="h-4 w-4 text-primary" strokeWidth={2} />
+          <span className="text-accent font-bold">&gt;</span>
           <h2 className="text-xs font-bold font-mono tracking-wider uppercase text-foreground">
-            &gt; LOGS // ALL SESSIONS ({history.length})
+            LOGSTREAM // ALL SESSIONS ({history.length})
           </h2>
         </div>
       </div>
 
-      {/* Search Filter when history has items */}
-      {history.length > 2 && (
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.75} />
+      {/* Search Filter */}
+      {history.length > 1 && (
+        <div className="relative flex items-center border border-border bg-card px-2.5 py-1.5 text-xs rounded-[2px]">
+          <span className="text-accent font-bold mr-2 select-none">$ grep</span>
           <input
             type="text"
-            placeholder="Cerca per data o esercizio..."
+            placeholder="data_o_esercizio..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-9 w-full rounded border border-input bg-card pl-9 pr-3 text-xs font-mono text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            className="h-7 w-full bg-transparent text-xs font-mono text-foreground placeholder:text-muted-foreground/40 focus:outline-none"
           />
+          <span className="text-accent animate-pulse font-mono select-none">█</span>
         </div>
       )}
 
       {history.length === 0 ? (
-        <div className="rounded border border-dashed border-border bg-card/30 p-8 text-center space-y-1.5">
-          <Calendar className="mx-auto h-8 w-8 text-muted-foreground/30 mb-2" strokeWidth={1.5} />
+        <div className="rounded-[2px] border border-dashed border-border bg-card/30 p-8 text-center space-y-1.5">
           <p className="text-xs font-mono font-bold text-muted-foreground uppercase">
             NESSUNA_SESSIONE_REGISTRATA
           </p>
@@ -89,7 +84,7 @@ export function HistoryView({
           </p>
         </div>
       ) : (
-        <div className="space-y-2.5">
+        <div className="space-y-3">
           {filteredHistory.map((workout) => {
             const isExpanded = expandedId === workout.id;
             const durationSec = workout.endedAt
@@ -110,50 +105,86 @@ export function HistoryView({
               );
             }, 0);
 
+            const dateStr = formatDate(workout.startedAt).split(' ')[0];
+
             return (
-              <div
+              <AsciiBox
                 key={workout.id}
-                className="rounded border border-border bg-card transition-all overflow-hidden"
+                title={
+                  <div className="flex items-center gap-1.5 truncate">
+                    <span className="text-muted-foreground">LOG</span>
+                    <span className="text-foreground font-black truncate">
+                      {workout.title}
+                    </span>
+                    <Badge variant="outline" className="text-[9px]">
+                      {dateStr}
+                    </Badge>
+                  </div>
+                }
+                status={
+                  <button
+                    onClick={() => toggleExpand(workout.id)}
+                    className="flex items-center gap-1 text-[10px] text-accent font-bold hover:underline"
+                  >
+                    {isExpanded ? (
+                      <>
+                        <ChevronDown className="h-3 w-3" />
+                        <span>[COLLAPSE]</span>
+                      </>
+                    ) : (
+                      <>
+                        <ChevronRight className="h-3 w-3" />
+                        <span>[EXPAND]</span>
+                      </>
+                    )}
+                  </button>
+                }
+                className="space-y-2 hover:border-accent/60 transition-colors"
               >
-                {/* Header item */}
+                {/* Telemetry bar */}
                 <div
                   onClick={() => toggleExpand(workout.id)}
-                  className="flex items-center justify-between p-3 cursor-pointer hover:bg-secondary/40 select-none transition-colors"
+                  className="flex items-center justify-between text-[11px] font-mono text-muted-foreground cursor-pointer select-none tabular-nums flex-wrap gap-2 pt-0.5"
                 >
-                  <div className="min-w-0 flex-1 pr-2">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-xs font-bold font-mono text-foreground truncate">
-                        {workout.title}
-                      </span>
-                      <Badge variant="outline" className="text-[9px] py-0 px-1 border-muted">
-                        {formatDate(workout.startedAt).split(' ')[0]}
-                      </Badge>
-                    </div>
-
-                    <div className="mt-1 flex items-center gap-3 text-[10px] font-mono text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3 text-primary" strokeWidth={2} />
-                        {formatDuration(durationSec)}
-                      </span>
-                      <span>{totalSets} serie</span>
-                      <span className="text-foreground font-semibold">
-                        {totalVolume.toLocaleString()}kg
-                      </span>
-                    </div>
+                  <div className="flex items-center gap-3">
+                    <span>⏱ {formatDuration(durationSec)}</span>
+                    <span>{totalSets} serie</span>
+                    <span className="text-foreground font-semibold">
+                      {totalVolume.toLocaleString()}kg
+                    </span>
                   </div>
+                  <span className="text-[10px] text-muted-foreground/60">
+                    {workout.exercises.length} movimenti
+                  </span>
+                </div>
 
-                  <div className="text-muted-foreground">
-                    {isExpanded ? (
-                      <ChevronDown className="h-4 w-4" strokeWidth={2} />
-                    ) : (
-                      <ChevronRight className="h-4 w-4" strokeWidth={2} />
+                {/* Collapsed quick tree preview */}
+                {!isExpanded && (
+                  <div className="font-mono text-xs text-muted-foreground space-y-0.5 pt-1 border-t border-border/40">
+                    {workout.exercises.slice(0, 3).map((ex, eIdx, arr) => {
+                      const isLast = eIdx === arr.length - 1 && workout.exercises.length <= 3;
+                      const prefix = isLast ? '└─' : '├─';
+                      return (
+                        <div key={ex.id || eIdx} className="truncate text-[11px]">
+                          <span className="text-accent/60 mr-1.5 select-none">{prefix}</span>
+                          <span className="text-foreground">{ex.name}</span>
+                          <span className="text-muted-foreground/60 text-[10px] ml-1">
+                            ({ex.muscleGroup})
+                          </span>
+                        </div>
+                      );
+                    })}
+                    {workout.exercises.length > 3 && (
+                      <div className="text-[10px] text-muted-foreground/60 pl-3">
+                        └─ +{workout.exercises.length - 3} altri movimenti...
+                      </div>
                     )}
                   </div>
-                </div>
+                )}
 
                 {/* Expanded ASCII Tree Details */}
                 {isExpanded && (
-                  <div className="border-t border-border/60 bg-background/60 p-3 space-y-3 animate-in fade-in duration-150">
+                  <div className="border-t border-border/60 pt-2 space-y-2.5 animate-in fade-in duration-150">
                     <div className="space-y-1.5 font-mono text-xs">
                       {workout.exercises.map((ex, eIdx) => {
                         const isLast = eIdx === workout.exercises.length - 1;
@@ -163,23 +194,22 @@ export function HistoryView({
                         return (
                           <div
                             key={ex.id || eIdx}
-                            className="rounded border border-border/40 bg-card/60 p-2 text-xs font-mono space-y-1.5 hover:border-primary/40 transition-colors"
+                            className="rounded-[2px] border border-border/40 bg-secondary/30 p-2 text-xs font-mono space-y-1.5 hover:border-accent/40 transition-colors"
                           >
                             <div
                               onClick={() => handleOpenExerciseHistory(ex.exerciseId, ex.name, ex.muscleGroup)}
                               className="flex items-center justify-between font-semibold text-foreground cursor-pointer group"
                             >
                               <div className="flex items-center gap-1.5 truncate">
-                                <span className="text-muted-foreground/60 select-none font-bold">
+                                <span className="text-accent select-none font-bold">
                                   {treeSymbol}
                                 </span>
-                                <span className="group-hover:text-primary transition-colors truncate">
+                                <span className="group-hover:text-accent transition-colors truncate">
                                   {ex.name}
                                 </span>
-                                <TrendingUp className="h-3 w-3 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
                               </div>
-                              <span className="text-[10px] text-muted-foreground uppercase shrink-0">
-                                {completedCount} serie
+                              <span className="text-[10px] text-muted-foreground uppercase shrink-0 tabular-nums">
+                                [{completedCount} SERIE]
                               </span>
                             </div>
 
@@ -190,7 +220,7 @@ export function HistoryView({
                                 .map((set, sIdx) => (
                                   <span
                                     key={set.id || sIdx}
-                                    className="rounded bg-secondary px-1.5 py-0.5 text-[10px] font-mono text-foreground border border-border/40 tabular-nums"
+                                    className="rounded-[2px] bg-secondary/80 px-1.5 py-0.5 text-[10px] font-mono text-foreground border border-border/60 tabular-nums"
                                   >
                                     {set.weight}kg × {set.reps}
                                   </span>
@@ -209,8 +239,7 @@ export function HistoryView({
                         onClick={() => onDeleteWorkout(workout.id)}
                         className="text-[10px] h-8 px-2 font-mono"
                       >
-                        <Trash2 className="mr-1 h-3 w-3" strokeWidth={1.75} />
-                        ELIMINA
+                        [ ✕ ELIMINA ]
                       </Button>
 
                       <Button
@@ -219,13 +248,12 @@ export function HistoryView({
                         onClick={() => onStartFromTemplate(workout)}
                         className="text-[10px] h-8 px-3 font-mono font-bold"
                       >
-                        <RotateCcw className="mr-1.5 h-3.5 w-3.5" strokeWidth={2} />
-                        RIPETI_SESSIONE
+                        [ ↻ RIPETI_SESSIONE ]
                       </Button>
                     </div>
                   </div>
                 )}
-              </div>
+              </AsciiBox>
             );
           })}
         </div>

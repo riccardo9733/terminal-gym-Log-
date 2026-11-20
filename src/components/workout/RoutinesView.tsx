@@ -1,17 +1,13 @@
 import { useState, useMemo } from 'react';
 import {
-  Bookmark,
-  Plus,
-  Play,
-  Edit2,
-  Trash2,
-  Copy,
   Clock,
-  Search,
+  ChevronRight,
+  ChevronDown,
 } from 'lucide-react';
 import { WorkoutRoutine } from '../../types/workout';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
+import { AsciiBox } from '../ui/ascii-box';
 import { formatShortDate, generateId } from '../../lib/utils';
 
 interface RoutinesViewProps {
@@ -32,6 +28,11 @@ export function RoutinesView({
   onCreateNewRoutine,
 }: RoutinesViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [expandedRoutineIds, setExpandedRoutineIds] = useState<Record<string, boolean>>({});
+
+  const toggleExpand = (id: string) => {
+    setExpandedRoutineIds((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
 
   const filteredRoutines = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
@@ -57,13 +58,13 @@ export function RoutinesView({
   };
 
   return (
-    <div className="flex-1 flex flex-col space-y-3 px-3 pt-3 pb-24">
+    <div className="flex-1 flex flex-col space-y-3 px-3 pt-3 pb-24 font-mono">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-border/60 pb-2">
+      <div className="flex items-center justify-between border-b border-border/80 pb-2">
         <div className="flex items-center gap-1.5">
-          <Bookmark className="h-4 w-4 text-primary" strokeWidth={2} />
+          <span className="text-accent font-bold">&gt;</span>
           <h2 className="text-xs font-bold font-mono tracking-wider uppercase text-foreground">
-            &gt; SCHEDE // BLUEPRINTS ({routines.length})
+            SCHEDE // BLUEPRINTS ({routines.length})
           </h2>
         </div>
 
@@ -73,29 +74,26 @@ export function RoutinesView({
           onClick={onCreateNewRoutine}
           className="h-8 px-2.5 text-[10px] font-mono font-bold"
         >
-          <Plus className="mr-1 h-3.5 w-3.5" strokeWidth={2} />
-          + NUOVA_SCHEDA
+          [ + NUOVA_SCHEDA ]
         </Button>
       </div>
 
-      {/* Search Filter */}
-      {routines.length > 2 && (
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.75} />
-          <input
-            type="text"
-            placeholder="Cerca scheda o esercizio..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-9 w-full rounded border border-input bg-card pl-9 pr-3 text-xs font-mono text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-          />
-        </div>
-      )}
+      {/* Shell Command Input */}
+      <div className="relative flex items-center border border-border bg-card px-2.5 py-1.5 text-xs rounded-[2px]">
+        <span className="text-accent font-bold mr-2 select-none">$ grep</span>
+        <input
+          type="text"
+          placeholder="scheda_o_esercizio..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="h-7 w-full bg-transparent text-xs font-mono text-foreground placeholder:text-muted-foreground/40 focus:outline-none"
+        />
+        <span className="text-accent animate-pulse font-mono select-none">█</span>
+      </div>
 
       {/* Routines Empty State */}
       {routines.length === 0 && (
-        <div className="rounded border border-dashed border-border bg-card/30 p-8 text-center space-y-2">
-          <Bookmark className="mx-auto h-8 w-8 text-muted-foreground/30 mb-1" strokeWidth={1.5} />
+        <div className="rounded-[2px] border border-dashed border-border bg-card/30 p-8 text-center space-y-2">
           <p className="text-xs font-mono font-bold text-muted-foreground uppercase">
             NESSUNA_SCHEDA_CREATA
           </p>
@@ -108,8 +106,7 @@ export function RoutinesView({
             onClick={onCreateNewRoutine}
             className="text-xs font-mono mt-2"
           >
-            <Plus className="mr-1 h-3.5 w-3.5" strokeWidth={2} />
-            CREA SCHEDA ORA
+            [ + CREA_SCHEDA_ORA ]
           </Button>
         </div>
       )}
@@ -120,111 +117,132 @@ export function RoutinesView({
           const muscleGroups = Array.from(
             new Set(routine.exercises.map((e) => e.muscleGroup))
           );
+          const isExpanded = Boolean(expandedRoutineIds[routine.id]);
 
           return (
-            <div
+            <AsciiBox
               key={routine.id}
-              className="rounded border border-border bg-card p-3.5 space-y-3 hover:border-primary/50 transition-colors shadow-xs"
-            >
-              {/* Routine Header */}
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-[10px] font-mono text-muted-foreground font-bold">
-                      [0{idx + 1}]
-                    </span>
-                    <h3 className="text-sm font-bold font-mono text-foreground tracking-tight truncate">
-                      {routine.title}
-                    </h3>
-                    <Badge variant="outline" className="text-[9px] py-0 px-1 border-muted">
-                      {routine.exercises.length} ES.
-                    </Badge>
-                  </div>
-
-                  {routine.description && (
-                    <p className="mt-1 text-xs font-mono text-muted-foreground line-clamp-2">
-                      {routine.description}
-                    </p>
-                  )}
-
-                  <div className="mt-1.5 flex items-center gap-3 text-[10px] font-mono text-muted-foreground">
-                    <span>REST: {routine.defaultRestSeconds ?? 90}s</span>
-                    {routine.lastPerformedAt && (
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3 text-primary" strokeWidth={2} />
-                        {formatShortDate(routine.lastPerformedAt)}
-                      </span>
-                    )}
-                  </div>
+              title={
+                <div className="flex items-center gap-1.5 truncate">
+                  <span className="text-muted-foreground">
+                    [0{idx + 1}]
+                  </span>
+                  <span className="text-foreground font-black truncate">
+                    {routine.title}
+                  </span>
+                  <Badge variant="outline" className="text-[9px]">
+                    {`${routine.exercises.length} ES.`}
+                  </Badge>
                 </div>
-
-                {/* Actions: Duplicate, Edit, Delete */}
-                <div className="flex items-center gap-0.5 shrink-0">
+              }
+              action={
+                <div className="flex items-center gap-1">
                   <button
                     type="button"
                     onClick={() => handleDuplicate(routine)}
-                    className="h-8 w-8 flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                    className="h-6 px-1.5 rounded-[2px] border border-border bg-secondary/80 text-[10px] text-muted-foreground hover:text-foreground hover:border-accent transition-colors"
                     title="Duplica scheda"
                   >
-                    <Copy className="h-3.5 w-3.5" strokeWidth={1.75} />
+                    [CPY]
                   </button>
-
                   <button
                     type="button"
                     onClick={() => onEditRoutine(routine)}
-                    className="h-8 w-8 flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                    className="h-6 px-1.5 rounded-[2px] border border-border bg-secondary/80 text-[10px] text-muted-foreground hover:text-foreground hover:border-accent transition-colors"
                     title="Modifica scheda"
                   >
-                    <Edit2 className="h-3.5 w-3.5" strokeWidth={1.75} />
+                    [EDT]
                   </button>
-
                   <button
                     type="button"
                     onClick={() => onDeleteRoutine(routine.id)}
-                    className="h-8 w-8 flex items-center justify-center rounded text-muted-foreground hover:text-destructive hover:bg-secondary transition-colors"
+                    className="h-6 px-1.5 rounded-[2px] border border-border bg-secondary/80 text-[10px] text-muted-foreground hover:text-destructive hover:border-destructive transition-colors"
                     title="Elimina scheda"
                   >
-                    <Trash2 className="h-3.5 w-3.5" strokeWidth={1.75} />
+                    [DEL]
                   </button>
+                </div>
+              }
+              className="space-y-3 hover:border-accent/60 transition-colors"
+            >
+              {routine.description && (
+                <p className="text-xs font-mono text-muted-foreground line-clamp-2">
+                  {routine.description}
+                </p>
+              )}
+
+              {/* Telemetry info & Muscle tags */}
+              <div className="flex items-center justify-between flex-wrap gap-2 text-[10px] font-mono text-muted-foreground">
+                <div className="flex items-center gap-3">
+                  <span>REST: {routine.defaultRestSeconds ?? 90}s</span>
+                  {routine.lastPerformedAt && (
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3 w-3 text-accent" strokeWidth={2} />
+                      <span className="tabular-nums">{formatShortDate(routine.lastPerformedAt)}</span>
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap gap-1">
+                  {muscleGroups.map((mg) => (
+                    <Badge
+                      key={mg}
+                      variant="outline"
+                      className="text-[9px] border-border text-muted-foreground"
+                    >
+                      {mg.toUpperCase()}
+                    </Badge>
+                  ))}
                 </div>
               </div>
 
-              {/* Muscle groups badges */}
-              <div className="flex flex-wrap gap-1">
-                {muscleGroups.map((mg) => (
-                  <Badge
-                    key={mg}
-                    variant="default"
-                    className="text-[9px] py-0 px-1.5 bg-secondary text-muted-foreground border-border uppercase font-mono"
-                  >
-                    {mg}
-                  </Badge>
-                ))}
-              </div>
+              {/* Accordion: ASCII tree of exercises */}
+              <div className="border-t border-border/50 pt-2 space-y-1">
+                <button
+                  type="button"
+                  onClick={() => toggleExpand(routine.id)}
+                  className="flex items-center gap-1 text-[11px] font-mono text-accent hover:underline select-none"
+                >
+                  {isExpanded ? (
+                    <>
+                      <ChevronDown className="h-3.5 w-3.5" />
+                      <span>▾ Nascondi esercizi e serie target</span>
+                    </>
+                  ) : (
+                    <>
+                      <ChevronRight className="h-3.5 w-3.5" />
+                      <span>▸ Visualizza esercizi e serie target</span>
+                    </>
+                  )}
+                </button>
 
-              {/* Exercises preview list */}
-              <div className="border-t border-border/40 pt-2 space-y-1">
-                {routine.exercises.slice(0, 4).map((ex, eIdx) => (
-                  <div
-                    key={ex.exerciseId + eIdx}
-                    className="flex items-center justify-between text-[11px] font-mono text-muted-foreground"
-                  >
-                    <span className="truncate pr-2">
-                      {eIdx + 1}. {ex.name}
-                    </span>
-                    <span className="text-foreground shrink-0 tabular-nums">
-                      {ex.targetSets} serie
-                    </span>
-                  </div>
-                ))}
-                {routine.exercises.length > 4 && (
-                  <div className="text-[10px] font-mono text-muted-foreground/60 pt-0.5">
-                    +{routine.exercises.length - 4} altri esercizi...
+                {isExpanded && (
+                  <div className="pt-1.5 font-mono text-xs text-muted-foreground space-y-1 pl-1 border-l border-border/40 ml-1.5">
+                    {routine.exercises.map((ex, eIdx, arr) => {
+                      const isLast = eIdx === arr.length - 1;
+                      const prefix = isLast ? '└─' : '├─';
+                      return (
+                        <div key={ex.exerciseId + eIdx} className="flex items-center justify-between text-[11px] truncate">
+                          <div className="truncate pr-2">
+                            <span className="text-accent mr-1.5 select-none">{prefix}</span>
+                            <span className="text-foreground font-semibold">{ex.name}</span>
+                            <span className="text-muted-foreground/60 text-[10px] ml-1">
+                              ({ex.muscleGroup})
+                            </span>
+                          </div>
+                          <div className="shrink-0 tabular-nums text-[10px] text-muted-foreground">
+                            {ex.targetSets}×{ex.defaultReps}
+                            {ex.defaultWeight ? ` @ ${ex.defaultWeight}kg` : ''}
+                            {ex.restSeconds ? ` [REST: ${ex.restSeconds}s]` : ''}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
 
-              {/* Primary Start Routine Trigger */}
+              {/* Primary Start Routine Action */}
               <div className="pt-1">
                 <Button
                   variant="primary"
@@ -232,11 +250,10 @@ export function RoutinesView({
                   onClick={() => onStartRoutine(routine)}
                   className="w-full text-xs font-mono font-bold tracking-wider h-11"
                 >
-                  <Play className="mr-1.5 h-3.5 w-3.5 fill-current" />
-                  [▸] INIZIA QUESTA SCHEDA
+                  [ ▶ AVVIA_SCHEDA ↵ ]
                 </Button>
               </div>
-            </div>
+            </AsciiBox>
           );
         })}
       </div>

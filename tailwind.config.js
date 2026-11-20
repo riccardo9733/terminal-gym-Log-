@@ -8,6 +8,7 @@ export default {
     extend: {
       fontFamily: {
         mono: [
+          "'GT America Mono'",
           "Berkeley Mono",
           "JetBrains Mono",
           "Geist Mono",
@@ -15,12 +16,21 @@ export default {
           "SFMono-Regular",
           "monospace",
         ],
+        sans: [
+          "SuisseIntl",
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "Helvetica",
+          "Arial",
+          "sans-serif",
+        ],
       },
       borderRadius: {
-        DEFAULT: "4px",
-        sm: "4px",
-        md: "4px",
-        lg: "4px",
+        none: "0px",
+        DEFAULT: "2px",
+        sm: "1px",
+        md: "2px",
+        lg: "2px",
         xl: "4px",
         "2xl": "4px",
       },
@@ -61,7 +71,7 @@ export default {
         },
         border: "rgb(var(--border))",
         input: "rgb(var(--input))",
-        ring: "rgb(var(--primary) / <alpha-value>)",
+        ring: "rgb(var(--accent) / <alpha-value>)",
       },
       maxWidth: {
         mobile: "430px",

@@ -1,8 +1,7 @@
 import { useState, useMemo } from 'react';
-import { BookOpen, Trophy, Plus, Search } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { DEFAULT_EXERCISES } from '../../data/default-exercises';
 import { UserExerciseMeta, MuscleGroup } from '../../types/workout';
-import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import {
   Dialog,
@@ -107,11 +106,11 @@ export function ExerciseListView({
   };
 
   return (
-    <div className="flex-1 flex flex-col space-y-3 px-3 pt-3 pb-24">
+    <div className="flex-1 flex flex-col space-y-3 px-3 pt-3 pb-24 font-mono">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-border/60 pb-2">
+      <div className="flex items-center justify-between border-b border-border/80 pb-2">
         <div className="flex items-center gap-1.5">
-          <BookOpen className="h-4 w-4 text-primary" strokeWidth={2} />
+          <span className="text-accent font-bold select-none">&gt;</span>
           <h2 className="text-xs font-bold font-mono tracking-wider uppercase text-foreground">
             EXERCISE_INDEX ({filtered.length})
           </h2>
@@ -124,35 +123,36 @@ export function ExerciseListView({
           className="h-8 px-2.5 text-[10px]"
         >
           <Plus className="mr-1 h-3.5 w-3.5" strokeWidth={2} />
-          NEW
+          [ + NEW ]
         </Button>
       </div>
 
-      {/* Search Input */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.75} />
+      {/* Search Input Shell Style */}
+      <div className="relative flex items-center border border-border bg-card px-2.5 py-1.5 text-xs rounded-[2px]">
+        <span className="text-accent font-bold mr-2 select-none">$ grep</span>
         <input
           type="text"
-          placeholder="Filter by name or muscle..."
+          placeholder="nome_o_gruppo_muscolare..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="h-10 w-full rounded border border-input bg-card pl-9 pr-3 text-sm font-mono text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+          className="h-7 w-full bg-transparent text-xs font-mono text-foreground placeholder:text-muted-foreground/40 focus:outline-none"
         />
+        <span className="text-accent animate-pulse font-mono select-none">█</span>
       </div>
 
-      {/* Muscle Filter Pills */}
+      {/* Muscle Filter Bracketed Buttons */}
       <div className="flex items-center gap-1 overflow-x-auto pb-1 no-scrollbar">
         {MUSCLE_GROUPS.map((opt) => (
           <button
             key={opt.value}
             onClick={() => setSelectedMuscle(opt.value)}
-            className={`shrink-0 rounded px-2 py-1 text-[10px] font-mono tracking-wider transition-colors border ${
+            className={`shrink-0 rounded-[2px] px-2 py-1 text-[10px] font-mono tracking-wider transition-colors border select-none ${
               selectedMuscle === opt.value
-                ? 'bg-primary text-primary-foreground border-primary font-bold'
+                ? 'bg-accent text-background border-accent font-extrabold'
                 : 'bg-card text-muted-foreground border-border hover:text-foreground'
             }`}
           >
-            {opt.label}
+            [{opt.label}]
           </button>
         ))}
       </div>
@@ -162,41 +162,38 @@ export function ExerciseListView({
         {filtered.map((item) => (
           <div
             key={item.id}
-            className="flex items-center justify-between rounded border border-border bg-card p-2.5 text-xs font-mono hover:bg-secondary/40 transition-colors"
+            className="flex items-center justify-between rounded-[2px] border border-border bg-card p-2.5 text-xs font-mono hover:bg-secondary/40 transition-colors"
           >
             <div className="min-w-0 pr-2">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="font-semibold text-foreground truncate">
+                <span className="font-bold text-foreground truncate">
                   {item.name}
                 </span>
                 {item.isCustom && (
-                  <Badge variant="outline" className="text-[8px] py-0 px-1 border-warning/40 text-warning">
-                    CUSTOM
-                  </Badge>
+                  <span className="text-warning text-[9px] font-bold">[CUSTOM]</span>
                 )}
               </div>
-              <div className="mt-0.5 text-[10px] text-muted-foreground capitalize">
+              <div className="mt-0.5 text-[10px] text-muted-foreground uppercase">
                 {item.muscleGroup}
-                {item.usageCount > 0 && ` • Logged ${item.usageCount} times`}
+                {item.usageCount > 0 && ` • Loggato ${item.usageCount} volte`}
               </div>
             </div>
 
             <div className="shrink-0 text-right">
               {item.bestWeight !== undefined && item.bestWeight > 0 ? (
-                <div className="flex items-center gap-1 rounded bg-accent/10 border border-accent/30 px-2 py-0.5 text-accent font-bold text-[11px] tabular-nums">
-                  <Trophy className="h-3 w-3" strokeWidth={2} />
-                  <span>{item.bestWeight}kg</span>
+                <div className="flex items-center gap-1 rounded-[2px] bg-accent/10 border border-accent/30 px-2 py-0.5 text-accent font-bold text-[11px] tabular-nums">
+                  <span>[PR: {item.bestWeight}kg]</span>
                 </div>
               ) : (
-                <span className="text-[10px] text-muted-foreground/40">NO PR</span>
+                <span className="text-[10px] text-muted-foreground/40">[NO_PR]</span>
               )}
             </div>
           </div>
         ))}
 
         {filtered.length === 0 && (
-          <div className="rounded border border-dashed border-border bg-card/30 p-8 text-center text-xs font-mono text-muted-foreground">
-            No exercises match your query.
+          <div className="rounded-[2px] border border-dashed border-border bg-card/30 p-8 text-center text-xs font-mono text-muted-foreground">
+            Nessun esercizio corrisponde alla ricerca.
           </div>
         )}
       </div>
@@ -205,35 +202,35 @@ export function ExerciseListView({
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>CREATE_CUSTOM_EXERCISE</DialogTitle>
+            <DialogTitle>&gt; CREA_ESERCIZIO_PERSONALIZZATO</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-3 py-2">
+          <div className="space-y-3 py-2 font-mono">
             <div>
-              <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block mb-1">
-                EXERCISE_NAME
+              <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block mb-1 font-semibold">
+                NOME_ESERCIZIO
               </label>
               <input
                 type="text"
-                placeholder="e.g. Bulgarian Landmine Squat"
+                placeholder="es. Bulgarian Landmine Squat"
                 value={newExerciseName}
                 onChange={(e) => setNewExerciseName(e.target.value)}
-                className="h-10 w-full rounded border border-input bg-background px-3 text-sm font-mono text-foreground focus:border-primary focus:outline-none"
+                className="h-10 w-full rounded-[2px] border border-input bg-card px-3 text-sm font-mono text-foreground focus:border-accent focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block mb-1">
-                PRIMARY_MUSCLE_GROUP
+              <label className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block mb-1 font-semibold">
+                GRUPPO_MUSCOLARE
               </label>
               <select
                 value={newExerciseMuscle}
                 onChange={(e) => setNewExerciseMuscle(e.target.value as MuscleGroup)}
-                className="h-10 w-full rounded border border-input bg-card px-3 text-xs font-mono text-foreground focus:border-primary focus:outline-none capitalize"
+                className="h-10 w-full rounded-[2px] border border-input bg-card px-3 text-xs font-mono text-foreground focus:border-accent focus:outline-none uppercase"
               >
                 {MUSCLE_GROUPS.filter((m) => m.value !== 'all').map((m) => (
                   <option key={m.value} value={m.value}>
-                    {m.label.toLowerCase()}
+                    {m.label}
                   </option>
                 ))}
               </select>
@@ -242,10 +239,10 @@ export function ExerciseListView({
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              CANCEL
+              [ ANNULLA ]
             </Button>
-            <Button variant="accent" onClick={handleCreate} disabled={!newExerciseName.trim()}>
-              SAVE_EXERCISE
+            <Button variant="primary" onClick={handleCreate} disabled={!newExerciseName.trim()}>
+              [ ✓ SALVA_ESERCIZIO ↵ ]
             </Button>
           </DialogFooter>
         </DialogContent>

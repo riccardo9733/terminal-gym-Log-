@@ -1,13 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Play,
-  TrendingUp,
   Plus,
-  Bookmark,
-  ChevronRight,
-  Clock,
-  RotateCcw,
-  Dumbbell,
 } from 'lucide-react';
 import { MobileAppShell } from './components/layout/MobileAppShell';
 import { TopStatusBar } from './components/layout/TopStatusBar';
@@ -20,7 +13,7 @@ import { AuthModal } from './components/workout/AuthModal';
 import { AuthScreen } from './components/workout/AuthScreen';
 import { RoutineEditorModal } from './components/workout/RoutineEditorModal';
 import { Button } from './components/ui/button';
-import { Badge } from './components/ui/badge';
+import { AsciiBox } from './components/ui/ascii-box';
 import { useAuth } from './hooks/useAuth';
 import { useWakeLock } from './hooks/useWakeLock';
 import { useNetworkSync } from './hooks/useNetworkSync';
@@ -365,106 +358,95 @@ export function App() {
               />
             ) : (
               /* Idle Workout Launcher Screen */
-              <div className="flex-1 flex flex-col space-y-3 px-3 pt-3 pb-24">
+              <div className="flex-1 flex flex-col space-y-3 px-3 pt-3 pb-24 font-mono">
                 {/* 1. System Telemetry Header */}
-                <div className="flex items-center justify-between rounded border border-border bg-card px-3 py-2 text-xs font-mono">
-                  <div className="flex items-center gap-1.5 text-muted-foreground">
-                    <div className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
-                    <span className="text-[10px] uppercase tracking-wider font-semibold">
-                      &gt; TELEMETRY // TODAY
-                    </span>
+                <div className="flex items-center justify-between border-b border-border/80 px-2 py-1.5 text-xs font-mono bg-secondary/30">
+                  <div className="flex items-center gap-1.5 text-accent font-bold">
+                    <span className="text-muted-foreground select-none">&gt;</span>
+                    <span>DATE:</span>
                   </div>
                   <span className="font-bold text-foreground tracking-tight text-[11px] tabular-nums">
                     {getTodayFormatted()}
                   </span>
                 </div>
 
-                {/* 2. Lifetime Telemetry Metrics 2x2 Grid */}
-                <div className="rounded border border-border bg-card p-3 text-xs font-mono space-y-2 shadow-xs">
-                  <div className="flex items-center justify-between text-[10px] font-bold text-muted-foreground uppercase tracking-wider border-b border-border/40 pb-1.5">
-                    <div className="flex items-center gap-1.5">
-                      <TrendingUp className="h-3.5 w-3.5 text-accent" strokeWidth={2} />
-                      <span>LIFETIME_TELEMETRY</span>
+                {/* 2. Primary Workout Launcher in AsciiBox */}
+                <AsciiBox
+                  variant="accent"
+                  title="SESSIONE_DI_ALLENAMENTO"
+                  status="[ENG_READY]"
+                >
+                  <div className="space-y-3">
+                    <div>
+                      <div className="text-xs font-mono font-bold text-accent flex items-center gap-1">
+                        <span>&gt; PRONTO_PER_L'ALLENAMENTO</span>
+                        <span className="animate-pulse font-bold text-accent select-none">█</span>
+                      </div>
+                      <p className="text-[11px] font-mono text-muted-foreground mt-1">
+                        Avvia una sessione libera oppure seleziona una delle tue schede preimpostate.
+                      </p>
                     </div>
-                    <span className="text-[9px] text-muted-foreground/60">SYS_OK</span>
+
+                    <Button
+                      variant="primary"
+                      size="lg"
+                      onClick={() => setStartWorkoutDrawerOpen(true)}
+                      className="w-full text-xs font-mono font-bold tracking-wider h-11"
+                    >
+                      [ ▶ INIZIA UN ALLENAMENTO ↵ ]
+                    </Button>
+                  </div>
+                </AsciiBox>
+
+                {/* 3. Tiled Lifetime Telemetry Panes (border-collapse 1px style) */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="border border-border bg-card p-2.5 rounded-[2px] space-y-1">
+                    <div className="text-[9px] font-mono text-muted-foreground uppercase tracking-wider">
+                      ┌─[ SESSIONI ]
+                    </div>
+                    <div className="text-lg font-black font-mono text-foreground tabular-nums">
+                      {totalCompletedWorkouts}
+                    </div>
+                    <div className="text-[9px] text-muted-foreground/60 font-mono">
+                      COMPLETED_TOTAL
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 pt-0.5">
-                    <div className="rounded border border-border/50 bg-secondary/60 p-2">
-                      <div className="text-[9px] text-muted-foreground uppercase tracking-wider">SESSIONI_TOTALI</div>
-                      <div className="text-lg font-black font-mono text-foreground tabular-nums mt-0.5">
-                        {totalCompletedWorkouts}
-                      </div>
+                  <div className="border border-border bg-card p-2.5 rounded-[2px] space-y-1">
+                    <div className="text-[9px] font-mono text-muted-foreground uppercase tracking-wider">
+                      ┌─[ VOLUME ]
                     </div>
-
-                    <div className="rounded border border-border/50 bg-secondary/60 p-2">
-                      <div className="text-[9px] text-muted-foreground uppercase tracking-wider">VOLUME_ACCUMULATO</div>
-                      <div className="text-lg font-black font-mono text-accent tabular-nums mt-0.5">
-                        {totalLifetimeVolume > 1000
-                          ? `${(totalLifetimeVolume / 1000).toFixed(1)}t`
-                          : `${totalLifetimeVolume}kg`}
-                      </div>
+                    <div className="text-lg font-black font-mono text-accent tabular-nums">
+                      {totalLifetimeVolume > 1000
+                        ? `${(totalLifetimeVolume / 1000).toFixed(1)}t`
+                        : `${totalLifetimeVolume}kg`}
+                    </div>
+                    <div className="text-[9px] text-muted-foreground/60 font-mono">
+                      LIFETIME_TONNAGE
                     </div>
                   </div>
                 </div>
 
-                {/* 3. Hero Quick Start Card */}
-                <div className="rounded border border-primary/50 bg-card p-4 space-y-3 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-mono uppercase tracking-widest text-accent font-bold">
-                      &gt; WORKOUT_ENGINE_READY
-                    </span>
-                    <Badge variant="primary" className="text-[9px] py-0 px-1 font-mono">
-                      v0.2
-                    </Badge>
-                  </div>
-
-                  <div>
-                    <h1 className="text-lg font-black font-mono tracking-tight text-foreground uppercase">
-                      SESSIONE_DI_ALLENAMENTO
-                    </h1>
-                    <p className="text-xs font-mono text-muted-foreground mt-0.5">
-                      Scegli tra le tue schede salvate oppure avvia immediatamente una sessione libera.
-                    </p>
-                  </div>
-
-                  {/* Primary Trigger: Opens Bottom Drawer */}
-                  <Button
-                    variant="primary"
-                    size="lg"
-                    onClick={() => setStartWorkoutDrawerOpen(true)}
-                    className="w-full text-xs font-mono font-bold tracking-wider h-12 shadow-xs"
-                  >
-                    <Play className="mr-2 h-4 w-4 fill-current" strokeWidth={0} />
-                    [▸] INIZIA UN ALLENAMENTO
-                  </Button>
-                </div>
-
-                {/* 4. Schede Rapide Strip */}
-                <div className="rounded border border-border bg-card p-3 space-y-2 shadow-xs">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">
-                      <Bookmark className="h-3.5 w-3.5 text-primary" strokeWidth={2} />
-                      <span>SCHEDE_RAPIDE ({routines.length})</span>
-                    </div>
-
+                {/* 4. Le Tue Schede Rapide */}
+                <AsciiBox
+                  title={`LE_TUE_SCHEDE (${routines.length})`}
+                  action={
                     <button
                       type="button"
                       onClick={() => setCurrentTab('routines')}
-                      className="flex items-center gap-0.5 text-[10px] font-mono text-primary font-bold hover:underline"
+                      className="text-[10px] font-mono text-accent hover:underline flex items-center gap-0.5"
                     >
-                      <span>VEDI_TUTTE</span>
-                      <ChevronRight className="h-3 w-3" />
+                      <span>[VEDI_TUTTE]</span>
                     </button>
-                  </div>
-
+                  }
+                >
                   <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
                     {routines.slice(0, 4).map((routine) => (
                       <button
                         key={routine.id}
                         type="button"
                         onClick={() => handleStartFromRoutine(routine)}
-                        className="shrink-0 rounded border border-border bg-secondary/50 px-2.5 py-1.5 text-left hover:border-accent hover:bg-secondary active:bg-secondary transition-all"
+                        className="shrink-0 rounded-[2px] border border-border bg-secondary/60 px-2.5 py-1.5 text-left hover:border-accent hover:bg-secondary active:bg-secondary transition-all"
                       >
                         <div className="text-xs font-bold font-mono text-foreground truncate max-w-[120px]">
                           {routine.title}
@@ -481,94 +463,76 @@ export function App() {
                         setRoutineToEdit(null);
                         setRoutineEditorOpen(true);
                       }}
-                      className="shrink-0 flex items-center gap-1 rounded border border-dashed border-border bg-secondary/30 px-2.5 py-2 text-xs font-mono text-primary hover:bg-secondary/60 transition-all"
+                      className="shrink-0 flex items-center gap-1 rounded-[2px] border border-dashed border-border bg-secondary/30 px-2.5 py-2 text-xs font-mono text-accent hover:bg-secondary/60 transition-all"
                     >
                       <Plus className="h-3 w-3" />
-                      <span>+ CREA</span>
+                      <span>[ + CREA ]</span>
                     </button>
                   </div>
-                </div>
+                </AsciiBox>
 
-                {/* 5. Ultima Sessione Svolta */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between px-0.5 text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">
-                    <div className="flex items-center gap-1.5">
-                      <Clock className="h-3.5 w-3.5 text-primary" strokeWidth={2} />
-                      <span>ULTIMA_SESSIONE_SVOLTA</span>
-                    </div>
-
-                    {lastSession && (
-                      <span className="text-muted-foreground/70">
-                        {formatDate(lastSession.startedAt).split(' ')[0]}
-                      </span>
-                    )}
-                  </div>
-
-                  {lastSession ? (
-                    <div className="rounded border border-border bg-card p-3 space-y-2.5 shadow-xs">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <h3 className="text-sm font-bold font-mono text-foreground tracking-tight truncate">
-                              {lastSession.title}
-                            </h3>
-                            <Badge variant="outline" className="text-[9px] py-0 px-1 border-muted">
-                              {lastSession.exercises.length} ES.
-                            </Badge>
-                          </div>
-
-                          <div className="mt-1 flex items-center gap-3 text-[10px] font-mono text-muted-foreground">
-                            <span>{lastSessionSetsCount} serie</span>
-                            <span className="text-foreground font-semibold">
-                              {lastSessionVolume.toLocaleString()}kg
-                            </span>
-                            {lastSessionDurationSec > 0 && (
-                              <span>{formatDuration(lastSessionDurationSec)}</span>
-                            )}
-                          </div>
-                        </div>
-
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => handleStartFromHistoryTemplate(lastSession)}
-                          className="h-8 px-2.5 text-[10px] font-mono font-bold shrink-0 border-border hover:border-primary/50"
-                          title="Ripeti gli stessi esercizi di questa sessione"
-                        >
-                          <RotateCcw className="mr-1 h-3 w-3 text-primary" strokeWidth={2} />
-                          RIPETI
-                        </Button>
+                {/* 5. Ultima Sessione Svolta (con ASCII Tree) */}
+                {lastSession ? (
+                  <AsciiBox
+                    title="ULTIMA_SESSIONE_SVOLTA"
+                    status={`[${formatDate(lastSession.startedAt).split(' ')[0]}]`}
+                    action={
+                      <Button
+                        variant="secondary"
+                        size="compact"
+                        onClick={() => handleStartFromHistoryTemplate(lastSession)}
+                        className="text-[10px]"
+                        title="Ripeti gli stessi esercizi di questa sessione"
+                      >
+                        [ ↻ RIPETI ]
+                      </Button>
+                    }
+                  >
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-xs font-mono">
+                        <span className="font-bold text-foreground truncate max-w-[180px]">{lastSession.title}</span>
+                        <span className="text-[10px] text-muted-foreground tabular-nums">
+                          {lastSessionSetsCount} serie │ {lastSessionVolume.toLocaleString()}kg
+                          {lastSessionDurationSec > 0 && ` │ ${formatDuration(lastSessionDurationSec)}`}
+                        </span>
                       </div>
 
-                      {/* Exercises snapshot preview */}
-                      <div className="flex flex-wrap gap-1 pt-1.5 border-t border-border/40">
-                        {lastSession.exercises.slice(0, 3).map((ex, idx) => (
-                          <span
-                            key={ex.exerciseId + idx}
-                            className="rounded bg-secondary px-1.5 py-0.5 text-[9px] font-mono text-muted-foreground border border-border/40 truncate max-w-[120px]"
-                          >
-                            {ex.name}
-                          </span>
-                        ))}
+                      {/* ASCII Tree Exercise Preview */}
+                      <div className="font-mono text-xs text-muted-foreground space-y-0.5 pt-1 border-t border-border/40">
+                        {lastSession.exercises.slice(0, 3).map((ex, idx, arr) => {
+                          const isLast = idx === arr.length - 1 && lastSession.exercises.length <= 3;
+                          const prefix = isLast ? '└─' : '├─';
+                          return (
+                            <div key={ex.exerciseId + idx} className="truncate text-[11px]">
+                              <span className="text-accent/70 select-none mr-1.5">{prefix}</span>
+                              <span className="text-foreground">{ex.name}</span>
+                              <span className="text-muted-foreground/60 text-[10px] ml-1">
+                                ({ex.muscleGroup})
+                              </span>
+                            </div>
+                          );
+                        })}
                         {lastSession.exercises.length > 3 && (
-                          <span className="text-[9px] font-mono text-muted-foreground/60 py-0.5">
-                            +{lastSession.exercises.length - 3} altri
-                          </span>
+                          <div className="truncate text-[11px]">
+                            <span className="text-accent/70 select-none mr-1.5">└─</span>
+                            <span className="text-muted-foreground/80">
+                              +{lastSession.exercises.length - 3} altri movimenti
+                            </span>
+                          </div>
                         )}
                       </div>
                     </div>
-                  ) : (
-                    <div className="rounded border border-dashed border-border bg-card/30 p-6 text-center">
-                      <Dumbbell className="mx-auto h-7 w-7 text-muted-foreground/30 mb-1.5" strokeWidth={1.5} />
-                      <p className="text-xs font-mono text-muted-foreground">
-                        Nessun allenamento completato finora.
-                      </p>
-                      <p className="text-[10px] font-mono text-muted-foreground/60 mt-0.5">
-                        I tuoi progressi e l&apos;ultima sessione svolta compariranno qui.
-                      </p>
-                    </div>
-                  )}
-                </div>
+                  </AsciiBox>
+                ) : (
+                  <div className="rounded-[2px] border border-dashed border-border bg-card/30 p-6 text-center space-y-1">
+                    <p className="text-xs font-mono font-bold text-muted-foreground uppercase">
+                      NESSUNA_SESSIONE_PRECEDENTE
+                    </p>
+                    <p className="text-[10px] font-mono text-muted-foreground/60">
+                      I tuoi progressi e l&apos;ultima sessione completata compariranno qui.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </>

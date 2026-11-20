@@ -1,4 +1,4 @@
-import { Check, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { WorkoutSet } from '../../types/workout';
 import { cn } from '../../lib/utils';
 
@@ -24,29 +24,28 @@ export function SetRow({
   return (
     <div
       className={cn(
-        'group flex items-center gap-1.5 py-1 px-1.5 rounded border transition-colors',
-        set.completed
-          ? 'bg-secondary/40 border-border'
-          : set.isWarmup
-          ? 'bg-secondary/20 border-dashed border-border'
-          : 'bg-card border-border'
+        'group flex items-center gap-1.5 py-1 px-1.5 rounded-[2px] transition-colors border',
+        set.isWarmup
+          ? 'border-dashed border-border/80 bg-secondary/20'
+          : 'border-solid border-border bg-card',
+        set.completed && 'bg-secondary/40 border-border/90'
       )}
     >
-      {/* 1. SET: Set Number / Warmup Toggle Button */}
+      {/* 1. SET: Warmup [W] or Set Number [01] */}
       <button
         type="button"
         onClick={() => onUpdate({ isWarmup: !set.isWarmup })}
         className={cn(
-          'flex h-9 w-9 shrink-0 items-center justify-center rounded text-xs font-bold font-mono transition-colors border select-none',
+          'flex h-9 w-9 shrink-0 items-center justify-center rounded-[2px] text-xs font-bold font-mono transition-colors border select-none tabular-nums',
           set.isWarmup
             ? 'bg-warning/15 text-warning border-warning/50'
             : set.completed
             ? 'bg-secondary text-foreground border-border'
-            : 'bg-secondary/70 text-muted-foreground border-border hover:border-primary/50 hover:text-foreground'
+            : 'bg-secondary/70 text-muted-foreground border-border hover:border-accent hover:text-foreground'
         )}
-        title={set.isWarmup ? 'Serie di riscaldamento (clicca per serie normale)' : 'Serie normale (clicca per serie warmup)'}
+        title={set.isWarmup ? 'Serie di riscaldamento [W]' : 'Serie normale'}
       >
-        {set.isWarmup ? 'W' : String(setIndex).padStart(2, '0')}
+        {set.isWarmup ? '[W]' : `[${String(setIndex).padStart(2, '0')}]`}
       </button>
 
       {/* 2. PREV: Previous Performance Reference */}
@@ -82,9 +81,9 @@ export function SetRow({
               const val = parseFloat(e.target.value);
               onUpdate({ weight: isNaN(val) ? 0 : val });
             }}
-            className="h-10 w-full rounded border border-input bg-secondary px-2 pr-6 text-center font-mono text-base font-bold text-foreground placeholder:text-muted-foreground/35 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary tabular-nums"
+            className="h-10 w-full rounded-[2px] border border-input bg-secondary/80 px-2 pr-6 text-center font-mono text-sm font-bold text-foreground placeholder:text-muted-foreground/30 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent tabular-nums"
           />
-          <span className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-[9px] font-mono text-muted-foreground">
+          <span className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-[9px] font-mono text-muted-foreground select-none">
             kg
           </span>
         </div>
@@ -105,36 +104,34 @@ export function SetRow({
               const val = parseInt(e.target.value, 10);
               onUpdate({ reps: isNaN(val) ? 0 : val });
             }}
-            className="h-10 w-full rounded border border-input bg-secondary px-2 pr-6 text-center font-mono text-base font-bold text-foreground placeholder:text-muted-foreground/35 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary tabular-nums"
+            className="h-10 w-full rounded-[2px] border border-input bg-secondary/80 px-2 pr-6 text-center font-mono text-sm font-bold text-foreground placeholder:text-muted-foreground/30 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent tabular-nums"
           />
-          <span className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-[9px] font-mono text-muted-foreground">
+          <span className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-[9px] font-mono text-muted-foreground select-none">
             reps
           </span>
         </div>
       </div>
 
-      {/* 5. DONE: Tactile Completion Checkbox (Strict 44x44px Touch Target) */}
+      {/* 5. DONE: ASCII Tactile Checkbox ([ ] / [x]) with 44x44px touch target */}
       <button
         type="button"
         onClick={onToggleComplete}
         className={cn(
-          'flex h-11 w-11 shrink-0 items-center justify-center rounded border transition-all active:scale-95 select-none',
+          'flex h-11 w-11 shrink-0 items-center justify-center rounded-[2px] border font-mono text-xs font-black transition-all active:scale-95 select-none tracking-tighter',
           set.completed
-            ? 'bg-accent border-accent text-accent-foreground font-black shadow-xs'
-            : 'bg-secondary/80 border-border text-muted-foreground hover:border-accent hover:text-accent'
+            ? 'bg-accent/20 border-accent text-accent'
+            : 'bg-secondary/70 border-border text-muted-foreground hover:border-accent hover:text-accent'
         )}
-        title={set.completed ? 'Serie completata' : 'Segna serie completata'}
+        title={set.completed ? 'Serie completata [x]' : 'Segna serie [ ]'}
       >
-        <Check
-          className={cn('h-5 w-5', set.completed ? 'stroke-[3]' : 'stroke-[1.75]')}
-        />
+        <span>{set.completed ? '[x]' : '[ ]'}</span>
       </button>
 
       {/* Delete Set Button */}
       <button
         type="button"
         onClick={onDelete}
-        className="flex h-11 w-7 shrink-0 items-center justify-center text-muted-foreground/30 hover:text-destructive active:text-destructive transition-colors"
+        className="flex h-11 w-6 shrink-0 items-center justify-center text-muted-foreground/30 hover:text-destructive active:text-destructive transition-colors font-mono text-xs"
         title="Elimina serie"
       >
         <Trash2 className="h-3.5 w-3.5" strokeWidth={1.75} />

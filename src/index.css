@@ -35,7 +35,7 @@
     --border: 255 255 255 / 0.10;
     --input: 255 255 255 / 0.14;
     --ring: 0 216 146;
-    --radius: 0.25rem;
+    --radius: 2px;
   }
 
   * {
@@ -49,13 +49,14 @@
   body {
     background-color: #0e1115;
     color: #fafafa;
-    font-family: 'Berkeley Mono', 'JetBrains Mono', 'Geist Mono', ui-monospace, SFMono-Regular, monospace;
+    font-family: 'GT America Mono', 'Berkeley Mono', 'JetBrains Mono', 'Geist Mono', ui-monospace, SFMono-Regular, monospace;
     overscroll-behavior-y: none;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     min-height: 100dvh;
     margin: 0;
     padding: 0;
+    letter-spacing: 0;
   }
 
   /* Prevent auto-zoom on iOS inputs */
@@ -67,17 +68,21 @@
 
   /* Custom terminal scrollbars */
   ::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
+    width: 3px;
+    height: 3px;
   }
   ::-webkit-scrollbar-track {
     background: #0e1115;
   }
   ::-webkit-scrollbar-thumb {
     background: #22252a;
-    border-radius: 2px;
+    border-radius: 0px;
   }
   ::-webkit-scrollbar-thumb:hover {
     background: #9ca0a8;
   }
+}
+
+@utility tabular-nums {
+  font-variant-numeric: tabular-nums;
 }
