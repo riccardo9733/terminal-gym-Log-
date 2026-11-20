@@ -32,6 +32,7 @@ interface ActiveWorkoutProps {
   onCreateCustomExercise: (name: string, muscleGroup: MuscleGroup) => void;
   onRecordSetPR: (exercise: WorkoutExercise, set: WorkoutSet) => void;
   onSaveAsRoutine?: (session: WorkoutSession) => void;
+  restTimer?: ReturnType<typeof useRestTimer>;
 }
 
 export function ActiveWorkout({
@@ -43,6 +44,7 @@ export function ActiveWorkout({
   onCancelSession,
   onCreateCustomExercise,
   onRecordSetPR,
+  restTimer: propRestTimer,
 }: ActiveWorkoutProps) {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [comboboxOpen, setComboboxOpen] = useState(false);
@@ -54,8 +56,9 @@ export function ActiveWorkout({
   const [historySummary, setHistorySummary] = useState<ExerciseHistorySummary | null>(null);
   const [historyDrawerOpen, setHistoryDrawerOpen] = useState(false);
 
-  // Rest Timer Hook
-  const restTimer = useRestTimer(session.defaultRestSeconds || 90);
+  // Rest Timer Hook (use shared prop if passed from App, else local instance)
+  const localRestTimer = useRestTimer(session.defaultRestSeconds || 90);
+  const restTimer = propRestTimer || localRestTimer;
 
   // Live session elapsed clock
   useEffect(() => {

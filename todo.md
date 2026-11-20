@@ -14,8 +14,8 @@ Piano operativo completo per rimuovere il rumore visivo, azzerare gli attriti ta
 - [x] **[FIX-06]** De-cluttering della Schermata `Session / Home` (Launcher & Schede Rapide) (`App.tsx`)
 - [x] **[FIX-07]** De-cluttering della Scheda `Schede / Routines` (`RoutinesView.tsx`)
 - [x] **[FIX-08]** Eliminazione Box Annidati nella Schermata `Logs` (`HistoryView.tsx`)
-- [ ] **[FIX-09]** TUI Design System Compliance: Eliminazione `rounded-full` & Centered `Dialog` (`TopStatusBar.tsx`, `AuthScreen.tsx`, rimozione `ExerciseListView.tsx`)
-- [ ] **[FIX-10]** Telemetria Live nella `BottomDock.tsx` durante sessione attiva
+- [x] **[FIX-09]** TUI Design System Compliance: Eliminazione `rounded-full` & Centered `Dialog` (`TopStatusBar.tsx`, `AuthScreen.tsx`, rimozione `ExerciseListView.tsx`)
+- [x] **[FIX-10]** Telemetria Live nella `BottomDock.tsx` durante sessione attiva
 
 ---
 

@@ -28,7 +28,7 @@ export function TopStatusBar({
       <div className="flex h-10 items-center justify-between px-3">
         {/* Left: Terminal Machine Brand */}
         <div className="flex items-center space-x-1.5 select-none">
-          <span className="h-2 w-2 rounded-full bg-accent animate-pulse inline-block" />
+          <span className="h-2 w-2 rounded-[0px] bg-accent animate-pulse inline-block" />
           <span className="text-xs font-bold tracking-tight text-foreground uppercase">
             // GYM_LOG
           </span>

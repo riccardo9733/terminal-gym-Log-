@@ -10,7 +10,7 @@ export function AuthScreen() {
       {/* Top Header */}
       <div className="pt-4 space-y-3">
         <div className="flex items-center space-x-2">
-          <span className="h-2 w-2 rounded-full bg-accent animate-pulse inline-block" />
+          <span className="h-2 w-2 rounded-[0px] bg-accent animate-pulse inline-block" />
           <span className="text-xs font-bold font-mono tracking-tight text-foreground">
             // GYM_LOG
           </span>

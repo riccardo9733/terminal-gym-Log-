@@ -14,6 +14,7 @@ import { AsciiBox } from './components/ui/ascii-box';
 import { useAuth } from './hooks/useAuth';
 import { useWakeLock } from './hooks/useWakeLock';
 import { useNetworkSync } from './hooks/useNetworkSync';
+import { useRestTimer } from './hooks/useRestTimer';
 import { workoutService } from './services/workoutService';
 import { exerciseService } from './services/exerciseService';
 import { routineService } from './services/routineService';
@@ -49,6 +50,23 @@ export function App() {
   // Sync state & Wake lock
   const syncState = useNetworkSync(pendingWritesCount, Boolean(user));
   const { isLocked: isWakeLocked } = useWakeLock(Boolean(activeSession));
+
+  // Active session live telemetry & shared rest timer
+  const restTimer = useRestTimer(activeSession?.defaultRestSeconds || 90);
+  const [sessionElapsedSeconds, setSessionElapsedSeconds] = useState(0);
+
+  useEffect(() => {
+    if (!activeSession) {
+      setSessionElapsedSeconds(0);
+      return;
+    }
+    const updateElapsed = () => {
+      setSessionElapsedSeconds(Math.max(0, Math.floor((Date.now() - activeSession.startedAt) / 1000)));
+    };
+    updateElapsed();
+    const interval = setInterval(updateElapsed, 1000);
+    return () => clearInterval(interval);
+  }, [activeSession?.startedAt, Boolean(activeSession)]);
 
   const userId = user?.uid || 'demo-user';
 
@@ -315,7 +333,7 @@ export function App() {
     return (
       <div className="min-h-[100dvh] max-w-md mx-auto flex flex-col items-center justify-center p-4 bg-background font-mono text-xs">
         <div className="flex items-center gap-2 text-foreground">
-          <div className="h-2 w-2 rounded-full bg-accent animate-ping" />
+          <span className="text-accent font-bold animate-pulse select-none text-sm leading-none">■</span>
           <span>INITIALIZING_SESSION...</span>
         </div>
       </div>
@@ -352,6 +370,7 @@ export function App() {
                 onCreateCustomExercise={handleCreateCustomExercise}
                 onRecordSetPR={handleRecordSetPR}
                 onSaveAsRoutine={handleSaveSessionAsRoutine}
+                restTimer={restTimer}
               />
             ) : (
               /* Idle Workout Launcher Screen */
@@ -537,11 +556,13 @@ export function App() {
         )}
       </main>
 
-      {/* Bottom Dock Navigation */}
+      {/* Bottom Dock Navigation with Live Telemetry */}
       <BottomDock
         currentTab={currentTab}
         onTabChange={setCurrentTab}
         hasActiveWorkout={Boolean(activeSession)}
+        elapsedSeconds={sessionElapsedSeconds}
+        activeRestSeconds={restTimer.isActive ? restTimer.remainingSeconds : undefined}
       />
 
       {/* Start Workout Bottom Drawer */}

@@ -1,3 +1,8 @@
+/**
+ * @deprecated Per Project Invariant 2 ("Bottom Drawers Only, Zero Centered Dialogs"),
+ * centered modal dialogs are forbidden on mobile.
+ * ALWAYS use `Drawer` (`src/components/ui/drawer.tsx`) anchored to the bottom.
+ */
 import * as React from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { cn } from '../../lib/utils';
