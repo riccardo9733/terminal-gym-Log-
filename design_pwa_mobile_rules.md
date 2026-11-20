@@ -18,10 +18,10 @@ Use warm dark surfaces and Apple HIG semantic accents. Never use pure black (`#0
 - `--muted-foreground`: `#9a9898` (Labels, units, secondary metadata)
 - `--border`: `rgba(253, 252, 252, 0.14)` (1px crisp structural dividers)
 - `--input`: `rgba(253, 252, 252, 0.18)` (Input field borders)
-- `--primary`: `#007aff` (Apple HIG Blue — primary actions, focus rings, active states)
-- `--accent`: `#30d158` (Apple HIG Green — completed sets, PR badges, `SYNCED` status)
-- `--warning`: `#ff9f0a` (Apple HIG Orange — active rest timer, `OFFLINE` queue indicator)
-- `--destructive`: `#ff3b30` (Apple HIG Red — destructive actions, validation errors)
+- `--primary`: `#007aff` (Apple HIG Blue: primary actions, focus rings, active states)
+- `--accent`: `#30d158` (Apple HIG Green: completed sets, PR badges, `SYNCED` status)
+- `--warning`: `#ff9f0a` (Apple HIG Orange: active rest timer, `OFFLINE` queue indicator)
+- `--destructive`: `#ff3b30` (Apple HIG Red: destructive actions, validation errors)
 
 ## Typography & Geometry
 - **Font Family (100% Monospace):** `'Berkeley Mono', 'JetBrains Mono', 'Geist Mono', ui-monospace, SFMono-Regular, monospace`. Never mix sans-serif or serif fonts.
@@ -40,7 +40,8 @@ Use warm dark surfaces and Apple HIG semantic accents. Never use pure black (`#0
    - Reps and RPE inputs must use `inputMode="numeric"` and `enterKeyHint="done"`.
 4. **Screen Wake Lock:** Request `navigator.wakeLock.request('screen')` while an active workout session is running so the display stays awake between sets.
 
-## Strict UI Prohibitions
+## Strict UI Prohibitions & Drawer Policy
+- **ALWAYS use bottom drawers / sheets (`Drawer`), NEVER centered dialogs or modals (`Dialog`).** Centered modals require stretching the thumb to the center/top of phone screens and break mobile ergonomics. All creation forms, selections, pickers, and confirmations must open as bottom sheets (`fixed inset-x-0 bottom-0 max-w-md mx-auto rounded-t-lg border-t border-border bg-card p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] animate-in slide-in-from-bottom`).
 - **NO emojis** anywhere in the UI or copy; use `lucide-react` icons (`strokeWidth={1.75}`).
 - **NO decorative gradients**; use flat semantic surfaces only.
 - **NO heavy shadows**; maximum shadow is `0 2px 8px rgba(0, 0, 0, 0.08)`.

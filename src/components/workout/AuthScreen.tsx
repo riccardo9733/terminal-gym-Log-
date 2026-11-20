@@ -25,7 +25,7 @@ export function AuthScreen() {
             AUTHENTICATION_REQUIRED
           </div>
           <div className="text-[11px] text-muted-foreground">
-            Sign in or create an account with Clerk to start tracking workouts with deterministic offline sync.
+            Sign in or create an account to start tracking workouts offline.
           </div>
         </div>
       </div>

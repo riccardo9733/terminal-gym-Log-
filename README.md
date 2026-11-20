@@ -1,6 +1,6 @@
 # // GYM_LOG
 
-Minimalist, offline-first **mobile-first PWA** workout logger built for developers.
+Minimalist offline-first mobile PWA workout logger for developers.
 
 ## Stack
 - **Frontend:** React 19, TypeScript, Vite, Tailwind CSS, shadcn/ui, Lucide Icons
@@ -37,8 +37,8 @@ npm run build
 firebase deploy --only hosting,firestore:rules
 ```
 
-## AI IDE Context (Google Antigravity)
-This repository includes native context files for Google Antigravity:
-- `AGENTS.md` — Always-on project architecture, invariants, and commands.
-- `.agents/rules/design-pwa-mobile.md` — Scoped UI, typography, and mobile-first PWA rules.
-- `.agents/rules/firebase-data-exercises.md` — Scoped Firestore offline persistence and hybrid exercise picker rules.
+## IDE Rules & Context
+- `AGENTS.md`: Core project architecture, invariants, and commands.
+- `.agents/rules/design-pwa-mobile.md`: UI tokens, typography, and mobile drawer policies.
+- `.agents/rules/firebase-data-exercises.md`: Firestore offline persistence and exercise picker rules.
+- `design.md`: Design system specifications for OpenCode Terminal Mono.

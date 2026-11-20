@@ -1,8 +1,8 @@
-# AGENTS.md — Terminal Gym Log (PWA)
+# AGENTS.md: Terminal Gym Log (PWA)
 
 ## Project Overview
-A minimalist, offline-first **mobile-first PWA** workout tracker built by developers for developers.
-- **Core Philosophy:** Zero bloat, keyboard/thumb-driven speed, terminal-native aesthetics, deterministic offline sync.
+Minimalist offline-first mobile PWA workout tracker for developers.
+- **Core Philosophy:** Zero bloat, thumb-driven speed, terminal aesthetics, deterministic offline sync.
 - **Target Experience:** One-handed smartphone usage on the gym floor (`max-w-md` single-column shell), installable as a standalone PWA on iOS and Android.
 - **Language Policy:** All code, TypeScript types, comments, git commits, and documentation must be written in English.
 
@@ -51,7 +51,7 @@ A minimalist, offline-first **mobile-first PWA** workout tracker built by develo
 6. **React 19 Idioms:** Prefer React 19 hooks (`useOptimistic`, `useActionState`, `use()`) and clean functional components without legacy boilerplate (`forwardRef` is unnecessary in React 19).
 
 ## Commands
-- `npm run dev` — Start Vite dev server (expose via `--host` when testing on mobile devices on LAN)
-- `npm run build` — Type-check (`tsc -b`) and build production PWA bundle + service worker
-- `npm run preview` — Preview production PWA build locally
-- `firebase deploy --only hosting,firestore:rules` — Deploy app and security rules
+- `npm run dev`: Start Vite dev server (expose via `--host` when testing on mobile devices on LAN)
+- `npm run build`: Type-check (`tsc -b`) and build production PWA bundle + service worker
+- `npm run preview`: Preview production PWA build locally
+- `firebase deploy --only hosting,firestore:rules`: Deploy app and security rules

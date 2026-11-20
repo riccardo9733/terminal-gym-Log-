@@ -395,7 +395,7 @@ export function ActiveWorkout({
                 <span className="font-semibold">Salva anche come scheda riutilizzabile</span>
               </label>
               <p className="text-[10px] font-mono text-muted-foreground mt-1 pl-6">
-                Verrà creata una scheda &quot;{session.title.replace(/_\d{4}-\d{2}-\d{2}/, '')}&quot; con questi esercizi per rieseguirla facilmente in futuro.
+                Verrà creata la scheda &quot;{session.title.replace(/_\d{4}-\d{2}-\d{2}/, '')}&quot; con questi esercizi per riutilizzarla nei prossimi allenamenti.
               </p>
             </div>
           </DrawerBody>
@@ -430,7 +430,7 @@ export function ActiveWorkout({
           <DrawerHeader>
             <DrawerTitle className="text-destructive">DISCARD_WORKOUT_SESSION?</DrawerTitle>
             <DrawerDescription>
-              Vuoi davvero scartare questo allenamento? Tutte le serie registrate in questa sessione andranno perse in modo permanente.
+              Vuoi scartare questo allenamento? Tutte le serie registrate in questa sessione andranno perse.
             </DrawerDescription>
           </DrawerHeader>
           <DrawerFooter>

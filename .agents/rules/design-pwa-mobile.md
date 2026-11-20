@@ -18,10 +18,10 @@ Use warm dark surfaces and Apple HIG semantic accents. Never use pure black (`#0
 - `--muted-foreground`: `#9a9898` (Labels, units, secondary metadata)
 - `--border`: `rgba(253, 252, 252, 0.14)` (1px crisp structural dividers)
 - `--input`: `rgba(253, 252, 252, 0.18)` (Input field borders)
-- `--primary`: `#007aff` (Apple HIG Blue — primary actions, focus rings, active states)
-- `--accent`: `#30d158` (Apple HIG Green — completed sets, PR badges, `SYNCED` status)
-- `--warning`: `#ff9f0a` (Apple HIG Orange — active rest timer, `OFFLINE` queue indicator)
-- `--destructive`: `#ff3b30` (Apple HIG Red — destructive actions, validation errors)
+- `--primary`: `#007aff` (Apple HIG Blue: primary actions, focus rings, active states)
+- `--accent`: `#30d158` (Apple HIG Green: completed sets, PR badges, `SYNCED` status)
+- `--warning`: `#ff9f0a` (Apple HIG Orange: active rest timer, `OFFLINE` queue indicator)
+- `--destructive`: `#ff3b30` (Apple HIG Red: destructive actions, validation errors)
 
 ## Typography & Geometry
 - **Font Family (100% Monospace):** `'Berkeley Mono', 'JetBrains Mono', 'Geist Mono', ui-monospace, SFMono-Regular, monospace`. Never mix sans-serif or serif fonts.
