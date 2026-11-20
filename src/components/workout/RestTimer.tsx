@@ -1,7 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
-import { Button } from '../ui/button';
-import { formatDuration } from '../../lib/utils';
-import { AsciiBox } from '../ui/ascii-box';
+import { formatDuration, cn } from '../../lib/utils';
 
 interface RestTimerProps {
   remainingSeconds: number;
@@ -15,145 +12,84 @@ interface RestTimerProps {
   onAddSeconds: (delta: number) => void;
 }
 
-const PRESETS = [60, 90, 120, 180];
-
 export function RestTimer({
   remainingSeconds,
   totalSeconds,
   isRunning,
   isActive,
-  onStart,
   onPause,
   onResume,
   onReset,
   onAddSeconds,
 }: RestTimerProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [barCapacity, setBarCapacity] = useState(28);
-
-  useEffect(() => {
-    const calculateCapacity = () => {
-      if (!containerRef.current) return;
-      const widthPx = containerRef.current.clientWidth;
-      // In monospace font at text-[11px], average character width is ~7px
-      const available = Math.max(16, Math.floor((widthPx - 60) / 7.2));
-      setBarCapacity(available);
-    };
-
-    calculateCapacity();
-    window.addEventListener('resize', calculateCapacity);
-    const observer = new ResizeObserver(calculateCapacity);
-    if (containerRef.current) observer.observe(containerRef.current);
-
-    return () => {
-      window.removeEventListener('resize', calculateCapacity);
-      observer.disconnect();
-    };
-  }, [isActive]);
-
+  // When timer is not active, render nothing (0px height, zero layout shift)
   if (!isActive) {
-    return (
-      <div className="flex items-center justify-between rounded-[2px] border border-border bg-card px-3 py-2 text-xs font-mono">
-        <div className="flex items-center gap-1.5 text-muted-foreground select-none">
-          <span className="text-warning font-bold">&gt;</span>
-          <span className="text-[10px] tracking-wider uppercase font-semibold">
-            REST_INTERVAL:
-          </span>
-        </div>
-        {/* ASCII Radio buttons for presets */}
-        <div className="flex items-center gap-1.5">
-          {PRESETS.map((seconds) => (
-            <button
-              key={seconds}
-              onClick={() => onStart(seconds)}
-              className="h-7 px-2 rounded-[2px] border border-border bg-secondary/70 text-[11px] font-mono text-muted-foreground hover:text-warning hover:border-warning/50 active:bg-secondary transition-colors tabular-nums select-none"
-            >
-              ( ) {seconds}s
-            </button>
-          ))}
-        </div>
-      </div>
-    );
+    return null;
   }
 
-  // Calculate filled vs empty blocks for ASCII progress track
+  // Calculate filled vs empty blocks for compact ASCII progress track
   const total = Math.max(totalSeconds, 1);
   const ratio = Math.max(0, Math.min(1, remainingSeconds / total));
-  const filledBlocks = Math.round(ratio * barCapacity);
-  const emptyBlocks = Math.max(0, barCapacity - filledBlocks);
-  const asciiTrack = '█'.repeat(filledBlocks) + '░'.repeat(emptyBlocks);
+  const totalBlocks = 8;
+  const filledBlocks = Math.max(0, Math.min(totalBlocks, Math.round(ratio * totalBlocks)));
+  const asciiTrack = '█'.repeat(filledBlocks) + '░'.repeat(totalBlocks - filledBlocks);
 
   return (
-    <AsciiBox
-      variant="warning"
-      title="REST_TIMER // COUNTDOWN"
-      status={
-        <span className="text-warning font-bold">
-          {isRunning ? '[RUNNING]' : '[PAUSED]'}
-        </span>
-      }
-      action={
-        <button
-          onClick={onReset}
-          className="h-6 w-6 rounded-[2px] border border-warning/40 text-warning hover:bg-warning/20 flex items-center justify-center font-mono text-xs select-none transition-colors"
-          title="Chiudi timer"
-        >
-          ✕
-        </button>
-      }
-      className="space-y-2.5"
-    >
-      {/* Main Countdown Row */}
-      <div className="flex items-center justify-between gap-3">
-        {/* Big countdown display */}
-        <div className="text-3xl font-black font-mono tracking-tight text-warning tabular-nums">
+    <div className="h-9 px-2.5 border-b border-warning/40 bg-secondary/95 backdrop-blur-sm flex items-center justify-between gap-1.5 font-mono select-none">
+      {/* Left: Indicator + Big Countdown */}
+      <div className="flex items-center gap-1.5 shrink-0">
+        <span className="text-[10px] text-warning font-bold">⏱ REST</span>
+        <span className="text-sm font-black font-mono tracking-tight text-warning tabular-nums">
           {formatDuration(remainingSeconds)}
-        </div>
-
-        {/* Tactical Controls */}
-        <div className="flex items-center gap-1 text-[11px] font-mono">
-          <button
-            onClick={() => onAddSeconds(-15)}
-            className="h-8 px-2 rounded-[2px] border border-border bg-secondary/80 text-foreground hover:border-warning/50 active:bg-secondary tabular-nums"
-            title="Sottrai 15s"
-          >
-            -15s
-          </button>
-          <button
-            onClick={() => onAddSeconds(15)}
-            className="h-8 px-2 rounded-[2px] border border-border bg-secondary/80 text-foreground hover:border-warning/50 active:bg-secondary tabular-nums"
-            title="Aggiungi 15s"
-          >
-            +15s
-          </button>
-          <Button
-            variant="default"
-            size="sm"
-            onClick={isRunning ? onPause : onResume}
-            className="h-8 px-2.5 font-bold"
-          >
-            {isRunning ? '[ ⏸ PAUSE ]' : '[ ▶ RESUME ]'}
-          </Button>
-          <button
-            onClick={onReset}
-            className="h-8 px-2 rounded-[2px] border border-border bg-secondary/80 text-muted-foreground hover:text-foreground"
-            title="Reset timer"
-          >
-            [↻]
-          </button>
-        </div>
-      </div>
-
-      {/* ASCII Progress Bar Track */}
-      <div
-        ref={containerRef}
-        className="w-full bg-secondary/40 border border-border/80 px-2 py-1 font-mono text-[11px] text-warning flex items-center justify-between overflow-hidden select-none"
-      >
-        <span className="tracking-tighter truncate font-mono">{`[${asciiTrack}]`}</span>
-        <span className="tabular-nums font-bold text-[10px] ml-2 shrink-0">
-          {Math.round(ratio * 100)}%
         </span>
       </div>
-    </AsciiBox>
+
+      {/* Center: Compact ASCII Progress Track */}
+      <div className="hidden min-[380px]:flex items-center gap-1 text-[10px] text-warning font-mono tabular-nums shrink-0">
+        <span className="tracking-tighter">[{asciiTrack}]</span>
+        <span className="text-[9px] font-bold opacity-80">{Math.round(ratio * 100)}%</span>
+      </div>
+
+      {/* Right: 1-Tap Tactical Controls */}
+      <div className="flex items-center gap-1 text-[10px] font-mono shrink-0">
+        <button
+          type="button"
+          onClick={() => onAddSeconds(-15)}
+          className="h-6 px-1.5 rounded-[2px] border border-border bg-card/80 text-foreground hover:border-warning/50 active:scale-95 transition-all tabular-nums"
+          title="Sottrai 15s"
+        >
+          -15s
+        </button>
+        <button
+          type="button"
+          onClick={() => onAddSeconds(15)}
+          className="h-6 px-1.5 rounded-[2px] border border-border bg-card/80 text-foreground hover:border-warning/50 active:scale-95 transition-all tabular-nums"
+          title="Aggiungi 15s"
+        >
+          +15s
+        </button>
+        <button
+          type="button"
+          onClick={isRunning ? onPause : onResume}
+          className={cn(
+            'h-6 px-1.5 rounded-[2px] border font-bold active:scale-95 transition-all',
+            isRunning
+              ? 'border-border bg-card/80 text-foreground hover:border-warning/50'
+              : 'border-warning/60 bg-warning/20 text-warning'
+          )}
+          title={isRunning ? 'Pausa' : 'Riprendi'}
+        >
+          {isRunning ? '⏸' : '▶'}
+        </button>
+        <button
+          type="button"
+          onClick={onReset}
+          className="h-6 px-1.5 rounded-[2px] border border-warning/50 bg-warning/10 text-warning font-bold hover:bg-warning/20 active:scale-95 transition-all"
+          title="Salta / chiudi recupero"
+        >
+          [✕]
+        </button>
+      </div>
+    </div>
   );
 }

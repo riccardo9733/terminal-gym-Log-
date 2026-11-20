@@ -2,9 +2,6 @@ import { useState, useEffect } from 'react';
 import {
   Plus,
   Dumbbell,
-  Edit2,
-  Check,
-  BookmarkPlus,
 } from 'lucide-react';
 import { WorkoutSession, WorkoutExercise, WorkoutSet, UserExerciseMeta, MuscleGroup } from '../../types/workout';
 import { ExerciseCard } from './ExerciseCard';
@@ -12,7 +9,6 @@ import { RestTimer } from './RestTimer';
 import { ExerciseCombobox } from './ExerciseCombobox';
 import { ExerciseHistoryDrawer } from './ExerciseHistoryDrawer';
 import { Button } from '../ui/button';
-import { AsciiBox } from '../ui/ascii-box';
 import {
   Drawer,
   DrawerContent,
@@ -35,7 +31,7 @@ interface ActiveWorkoutProps {
   onCancelSession: () => void;
   onCreateCustomExercise: (name: string, muscleGroup: MuscleGroup) => void;
   onRecordSetPR: (exercise: WorkoutExercise, set: WorkoutSet) => void;
-  onSaveAsRoutine: (session: WorkoutSession) => void;
+  onSaveAsRoutine?: (session: WorkoutSession) => void;
 }
 
 export function ActiveWorkout({
@@ -47,15 +43,12 @@ export function ActiveWorkout({
   onCancelSession,
   onCreateCustomExercise,
   onRecordSetPR,
-  onSaveAsRoutine,
 }: ActiveWorkoutProps) {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [comboboxOpen, setComboboxOpen] = useState(false);
   const [showFinishConfirm, setShowFinishConfirm] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [saveAsRoutineCheck, setSaveAsRoutineCheck] = useState(false);
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [tempTitle, setTempTitle] = useState(session.title);
 
   // Exercise History Drawer state
   const [historySummary, setHistorySummary] = useState<ExerciseHistorySummary | null>(null);
@@ -156,13 +149,6 @@ export function ActiveWorkout({
     });
   };
 
-  const saveTitle = () => {
-    if (tempTitle.trim()) {
-      onUpdateSession({ ...session, title: tempTitle.trim() });
-    }
-    setIsEditingTitle(false);
-  };
-
   // Workout stats
   const totalSets = session.exercises.reduce((acc, ex) => acc + ex.sets.length, 0);
   const completedSets = session.exercises.reduce(
@@ -184,101 +170,25 @@ export function ActiveWorkout({
   const setsAsciiBar = '█'.repeat(setsFilled) + '░'.repeat(10 - setsFilled);
 
   return (
-    <div className="flex-1 flex flex-col space-y-3 px-3 pt-3 pb-36 font-mono">
-      {/* Active Workout Prompt Header */}
-      <AsciiBox
-        variant="accent"
-        title="ACTIVE_SESSION // MONITOR"
-        status={
-          <div className="flex items-center gap-1 text-accent font-bold tabular-nums">
-            <span>[⏱</span>
-            <span>{formatDuration(elapsedSeconds)}]</span>
-          </div>
-        }
-        action={
-          <button
-            type="button"
-            onClick={() => onSaveAsRoutine(session)}
-            className="flex h-6 items-center gap-1 rounded-[2px] border border-border bg-secondary/80 px-1.5 text-[9px] font-mono text-muted-foreground hover:text-accent hover:border-accent transition-colors"
-            title="Salva come scheda"
-          >
-            <BookmarkPlus className="h-2.5 w-2.5 text-accent" />
-            <span>[SAVE_BLUEPRINT]</span>
-          </button>
-        }
-      >
-        <div className="space-y-2">
-          {/* Editable Session Title Prompt */}
-          <div className="flex items-center justify-between">
-            {isEditingTitle ? (
-              <div className="flex items-center gap-1.5 flex-1 pr-2">
-                <input
-                  type="text"
-                  value={tempTitle}
-                  onChange={(e) => setTempTitle(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && saveTitle()}
-                  className="h-8 w-full rounded-[2px] border border-accent bg-background px-2 text-xs font-bold font-mono text-foreground focus:outline-none"
-                  autoFocus
-                />
-                <Button size="compact" variant="primary" onClick={saveTitle}>
-                  <Check className="h-3 w-3" />
-                </Button>
-              </div>
-            ) : (
-              <div
-                onClick={() => {
-                  setTempTitle(session.title);
-                  setIsEditingTitle(true);
-                }}
-                className="flex items-center gap-1.5 cursor-pointer group"
-                title="Tocca per rinominare sessione"
-              >
-                <span className="text-muted-foreground select-none">&gt;</span>
-                <h2 className="text-sm font-black font-mono text-foreground tracking-tight hover:text-accent transition-colors">
-                  {session.title}
-                </h2>
-                <Edit2 className="h-3 w-3 text-muted-foreground opacity-60 group-hover:opacity-100" />
-              </div>
-            )}
-          </div>
-
-          {/* Telemetry Bar */}
-          <div className="flex items-center justify-between border-t border-border/50 pt-2 text-[10px] font-mono text-muted-foreground tabular-nums flex-wrap gap-1">
-            <div className="flex items-center gap-1">
-              <span>SETS:</span>
-              <span className="text-accent font-bold">[{setsAsciiBar}]</span>
-              <span>{completedSets}/{totalSets}</span>
-            </div>
-            <span className="text-border">│</span>
-            <div>
-              <span>VOL:</span>{' '}
-              <span className="text-foreground font-semibold">
-                {totalVolumeKg.toLocaleString()}kg
-              </span>
-            </div>
-            <span className="text-border">│</span>
-            <div>
-              <span>EX:</span>{' '}
-              <span className="text-foreground font-semibold">
-                {session.exercises.length}
-              </span>
-            </div>
-          </div>
+    <div className="flex-1 flex flex-col space-y-3 px-3 pt-3 pb-40 font-mono">
+      {/* Compact TUI Telemetry Header Strip (~34px) */}
+      <div className="flex items-center justify-between gap-2 h-9 px-2.5 rounded-[2px] border border-border bg-card/90 text-xs font-mono select-none">
+        <div className="flex items-center gap-1.5 min-w-0 truncate">
+          <span className="text-accent font-bold shrink-0">&gt;</span>
+          <span className="font-bold text-foreground truncate text-xs" title={session.title}>
+            {session.title}
+          </span>
+          <span className="text-accent font-bold tabular-nums text-xs whitespace-nowrap shrink-0">
+            [⏱ {formatDuration(elapsedSeconds)}]
+          </span>
         </div>
-      </AsciiBox>
 
-      {/* Rest Timer Widget */}
-      <RestTimer
-        remainingSeconds={restTimer.remainingSeconds}
-        totalSeconds={restTimer.totalSeconds}
-        isRunning={restTimer.isRunning}
-        isActive={restTimer.isActive}
-        onStart={restTimer.startTimer}
-        onPause={restTimer.pauseTimer}
-        onResume={restTimer.resumeTimer}
-        onReset={restTimer.resetTimer}
-        onAddSeconds={restTimer.addSeconds}
-      />
+        <div className="flex items-center gap-1.5 shrink-0 text-[10px] text-muted-foreground tabular-nums">
+          <span className="font-bold text-foreground">{completedSets}/{totalSets}</span>
+          <span className="text-[9px]">SETS</span>
+          <span className="text-accent font-bold tracking-tighter">[{setsAsciiBar}]</span>
+        </div>
+      </div>
 
       {/* Exercises List */}
       <div className="space-y-3">
@@ -345,22 +255,37 @@ export function ActiveWorkout({
         </Button>
       </div>
 
-      {/* ALWAYS VISIBLE PINNED BOTTOM ACTION BAR */}
+      {/* ALWAYS VISIBLE PINNED BOTTOM DOCK (STICKY REST TIMER + FINISH BAR) */}
       <div
         className="fixed left-0 right-0 z-30 border-t border-border bg-background"
         style={{ bottom: 'calc(2.75rem + env(safe-area-inset-bottom, 0px))' }}
       >
-        <div className="mx-auto flex max-w-md items-center px-3 py-2">
+        <div className="mx-auto max-w-md">
+          {/* Compact Sticky Rest Timer (36px, zero layout shift, renders only when active) */}
+          <RestTimer
+            remainingSeconds={restTimer.remainingSeconds}
+            totalSeconds={restTimer.totalSeconds}
+            isRunning={restTimer.isRunning}
+            isActive={restTimer.isActive}
+            onStart={restTimer.startTimer}
+            onPause={restTimer.pauseTimer}
+            onResume={restTimer.resumeTimer}
+            onReset={restTimer.resetTimer}
+            onAddSeconds={restTimer.addSeconds}
+          />
+
           {/* Always Visible Full-Width FINISH Button */}
-          <Button
-            type="button"
-            variant="primary"
-            onClick={() => setShowFinishConfirm(true)}
-            className="w-full font-mono text-xs font-black tracking-wider h-11"
-            title="Termina e registra sessione"
-          >
-            <span>[ ✓ FINISH SESSION ({completedSets}/{totalSets}) ↵ ]</span>
-          </Button>
+          <div className="px-3 py-2">
+            <Button
+              type="button"
+              variant="primary"
+              onClick={() => setShowFinishConfirm(true)}
+              className="w-full font-mono text-xs font-black tracking-wider h-11"
+              title="Termina e registra sessione"
+            >
+              <span>[ ✓ FINISH SESSION ({completedSets}/{totalSets}) ↵ ]</span>
+            </Button>
+          </div>
         </div>
       </div>
 
