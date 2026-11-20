@@ -11,9 +11,9 @@ Piano operativo completo per rimuovere il rumore visivo, azzerare gli attriti ta
 - [x] **[FIX-03]** Rimozione Cestino Pericoloso su `SetRow` & Pulizia Testata `ExerciseCard.tsx`
 - [x] **[FIX-04]** De-cluttering & Compressione Header di `ActiveWorkout.tsx` (da 130px a 32px)
 - [x] **[FIX-05]** Rest Timer Sticky Compatto & Eliminazione del Layout Shift (`RestTimer.tsx`, `ActiveWorkout.tsx`)
-- [ ] **[FIX-06]** De-cluttering della Schermata `Session / Home` (Launcher & Schede Rapide) (`App.tsx`)
-- [ ] **[FIX-07]** De-cluttering della Scheda `Schede / Routines` (`RoutinesView.tsx`)
-- [ ] **[FIX-08]** Eliminazione Box Annidati nella Schermata `Logs` (`HistoryView.tsx`)
+- [x] **[FIX-06]** De-cluttering della Schermata `Session / Home` (Launcher & Schede Rapide) (`App.tsx`)
+- [x] **[FIX-07]** De-cluttering della Scheda `Schede / Routines` (`RoutinesView.tsx`)
+- [x] **[FIX-08]** Eliminazione Box Annidati nella Schermata `Logs` (`HistoryView.tsx`)
 - [ ] **[FIX-09]** TUI Design System Compliance: Eliminazione `rounded-full` & Centered `Dialog` (`TopStatusBar.tsx`, `AuthScreen.tsx`, rimozione `ExerciseListView.tsx`)
 - [ ] **[FIX-10]** Telemetria Live nella `BottomDock.tsx` durante sessione attiva
 

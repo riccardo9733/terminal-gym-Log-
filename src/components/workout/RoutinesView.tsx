@@ -3,11 +3,23 @@ import {
   Clock,
   ChevronRight,
   ChevronDown,
+  Edit2,
+  Copy,
+  Trash2,
 } from 'lucide-react';
 import { WorkoutRoutine } from '../../types/workout';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { AsciiBox } from '../ui/ascii-box';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+  DrawerBody,
+  DrawerFooter,
+} from '../ui/drawer';
 import { formatShortDate, generateId } from '../../lib/utils';
 
 interface RoutinesViewProps {
@@ -29,6 +41,7 @@ export function RoutinesView({
 }: RoutinesViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedRoutineIds, setExpandedRoutineIds] = useState<Record<string, boolean>>({});
+  const [routineOptionsTarget, setRoutineOptionsTarget] = useState<WorkoutRoutine | null>(null);
 
   const toggleExpand = (id: string) => {
     setExpandedRoutineIds((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -36,7 +49,7 @@ export function RoutinesView({
 
   const filteredRoutines = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
-    if (!q) return routines;
+    if (!q || routines.length < 5) return routines;
     return routines.filter(
       (r) =>
         r.title.toLowerCase().includes(q) ||
@@ -78,18 +91,20 @@ export function RoutinesView({
         </Button>
       </div>
 
-      {/* Shell Command Input */}
-      <div className="relative flex items-center border border-border bg-card px-2.5 py-1.5 text-xs rounded-[2px]">
-        <span className="text-accent font-bold mr-2 select-none">$ grep</span>
-        <input
-          type="text"
-          placeholder="scheda_o_esercizio..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="h-7 w-full bg-transparent text-xs font-mono text-foreground placeholder:text-muted-foreground/40 focus:outline-none"
-        />
-        <span className="text-accent animate-pulse font-mono select-none">█</span>
-      </div>
+      {/* Shell Command Input - only shown if routines >= 5 */}
+      {routines.length >= 5 && (
+        <div className="relative flex items-center border border-border bg-card px-2.5 py-1.5 text-xs rounded-[2px]">
+          <span className="text-accent font-bold mr-2 select-none">$ grep</span>
+          <input
+            type="text"
+            placeholder="scheda_o_esercizio..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="h-7 w-full bg-transparent text-xs font-mono text-foreground placeholder:text-muted-foreground/40 focus:outline-none"
+          />
+          <span className="text-accent animate-pulse font-mono select-none">█</span>
+        </div>
+      )}
 
       {/* Routines Empty State */}
       {routines.length === 0 && (
@@ -125,7 +140,7 @@ export function RoutinesView({
               title={
                 <div className="flex items-center gap-1.5 truncate">
                   <span className="text-muted-foreground">
-                    [0{idx + 1}]
+                    [{String(idx + 1).padStart(2, '0')}]
                   </span>
                   <span className="text-foreground font-black truncate">
                     {routine.title}
@@ -136,32 +151,14 @@ export function RoutinesView({
                 </div>
               }
               action={
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => handleDuplicate(routine)}
-                    className="h-6 px-1.5 rounded-[2px] border border-border bg-secondary/80 text-[10px] text-muted-foreground hover:text-foreground hover:border-accent transition-colors"
-                    title="Duplica scheda"
-                  >
-                    [CPY]
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onEditRoutine(routine)}
-                    className="h-6 px-1.5 rounded-[2px] border border-border bg-secondary/80 text-[10px] text-muted-foreground hover:text-foreground hover:border-accent transition-colors"
-                    title="Modifica scheda"
-                  >
-                    [EDT]
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onDeleteRoutine(routine.id)}
-                    className="h-6 px-1.5 rounded-[2px] border border-border bg-secondary/80 text-[10px] text-muted-foreground hover:text-destructive hover:border-destructive transition-colors"
-                    title="Elimina scheda"
-                  >
-                    [DEL]
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setRoutineOptionsTarget(routine)}
+                  className="h-6 px-1.5 rounded-[2px] border border-border bg-secondary/80 text-xs font-mono font-bold text-muted-foreground hover:text-foreground hover:border-accent transition-colors select-none"
+                  title="Opzioni scheda"
+                >
+                  [···]
+                </button>
               }
               className="space-y-3 hover:border-accent/60 transition-colors"
             >
@@ -257,6 +254,83 @@ export function RoutinesView({
           );
         })}
       </div>
+
+      {/* Routine Options Drawer */}
+      <Drawer
+        open={Boolean(routineOptionsTarget)}
+        onOpenChange={(open) => !open && setRoutineOptionsTarget(null)}
+      >
+        <DrawerContent className="max-h-[85dvh]">
+          <DrawerHeader>
+            <DrawerTitle className="font-mono text-sm uppercase">
+              {routineOptionsTarget?.title} // OPZIONI
+            </DrawerTitle>
+            <DrawerDescription className="font-mono text-xs">
+              {routineOptionsTarget?.exercises.length} ESERCIZI PREIMPOSTATI
+            </DrawerDescription>
+          </DrawerHeader>
+
+          <DrawerBody className="space-y-2 font-mono">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                if (routineOptionsTarget) {
+                  const target = routineOptionsTarget;
+                  setRoutineOptionsTarget(null);
+                  onEditRoutine(target);
+                }
+              }}
+              className="w-full h-11 text-xs justify-start"
+            >
+              <Edit2 className="mr-2 h-4 w-4" />
+              [ MODIFICA SCHEDA ]
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                if (routineOptionsTarget) {
+                  const target = routineOptionsTarget;
+                  setRoutineOptionsTarget(null);
+                  handleDuplicate(target);
+                }
+              }}
+              className="w-full h-11 text-xs justify-start"
+            >
+              <Copy className="mr-2 h-4 w-4" />
+              [ DUPLICA SCHEDA ]
+            </Button>
+
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={() => {
+                if (routineOptionsTarget) {
+                  const targetId = routineOptionsTarget.id;
+                  setRoutineOptionsTarget(null);
+                  onDeleteRoutine(targetId);
+                }
+              }}
+              className="w-full h-11 text-xs justify-start text-destructive hover:bg-destructive/10"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              [ ✕ ELIMINA SCHEDA ]
+            </Button>
+          </DrawerBody>
+
+          <DrawerFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setRoutineOptionsTarget(null)}
+            >
+              [ CHIUDI ]
+            </Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 }

@@ -1,7 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import {
-  Plus,
-} from 'lucide-react';
 import { MobileAppShell } from './components/layout/MobileAppShell';
 import { TopStatusBar } from './components/layout/TopStatusBar';
 import { BottomDock, NavTab } from './components/layout/BottomDock';
@@ -28,7 +25,7 @@ import {
   UserExerciseMeta,
   MuscleGroup,
 } from './types/workout';
-import { generateId, formatDate, formatDuration, getTodayFormatted } from './lib/utils';
+import { generateId, formatDate, formatDuration } from './lib/utils';
 
 export function App() {
   const {
@@ -359,56 +356,25 @@ export function App() {
             ) : (
               /* Idle Workout Launcher Screen */
               <div className="flex-1 flex flex-col space-y-3 px-3 pt-3 pb-24 font-mono">
-                {/* 1. System Telemetry Header */}
-                <div className="flex items-center justify-between border-b border-border/80 px-2 py-1.5 text-xs font-mono bg-secondary/30">
-                  <div className="flex items-center gap-1.5 text-accent font-bold">
-                    <span className="text-muted-foreground select-none">&gt;</span>
-                    <span>DATE:</span>
-                  </div>
-                  <span className="font-bold text-foreground tracking-tight text-[11px] tabular-nums">
-                    {getTodayFormatted()}
-                  </span>
-                </div>
-
-                {/* 2. Primary Workout Launcher in AsciiBox */}
-                <AsciiBox
-                  variant="accent"
-                  title="SESSIONE_DI_ALLENAMENTO"
-                  status="[ENG_READY]"
+                {/* 1. Primary Empty Workout Action */}
+                <Button
+                  variant="primary"
+                  size="lg"
+                  onClick={handleStartEmptyWorkout}
+                  className="w-full text-xs font-mono font-bold tracking-wider h-11"
+                  title="Avvia sessione libera"
                 >
-                  <div className="space-y-3">
-                    <div>
-                      <div className="text-xs font-mono font-bold text-accent flex items-center gap-1">
-                        <span>&gt; PRONTO_PER_L'ALLENAMENTO</span>
-                        <span className="animate-pulse font-bold text-accent select-none">█</span>
-                      </div>
-                      <p className="text-[11px] font-mono text-muted-foreground mt-1">
-                        Avvia una sessione libera oppure seleziona una delle tue schede preimpostate.
-                      </p>
-                    </div>
+                  [ ▶ AVVIA SESSIONE LIBERA ↵ ]
+                </Button>
 
-                    <Button
-                      variant="primary"
-                      size="lg"
-                      onClick={() => setStartWorkoutDrawerOpen(true)}
-                      className="w-full text-xs font-mono font-bold tracking-wider h-11"
-                    >
-                      [ ▶ INIZIA UN ALLENAMENTO ↵ ]
-                    </Button>
-                  </div>
-                </AsciiBox>
-
-                {/* 3. Tiled Lifetime Telemetry Panes (border-collapse 1px style) */}
+                {/* 2. Tiled Lifetime Telemetry Panes */}
                 <div className="grid grid-cols-2 gap-2">
                   <div className="border border-border bg-card p-2.5 rounded-[2px] space-y-1">
                     <div className="text-[9px] font-mono text-muted-foreground uppercase tracking-wider">
                       ┌─[ SESSIONI ]
                     </div>
-                    <div className="text-lg font-black font-mono text-foreground tabular-nums">
+                    <div className="text-xl font-black font-mono text-foreground tabular-nums">
                       {totalCompletedWorkouts}
-                    </div>
-                    <div className="text-[9px] text-muted-foreground/60 font-mono">
-                      COMPLETED_TOTAL
                     </div>
                   </div>
 
@@ -416,18 +382,15 @@ export function App() {
                     <div className="text-[9px] font-mono text-muted-foreground uppercase tracking-wider">
                       ┌─[ VOLUME ]
                     </div>
-                    <div className="text-lg font-black font-mono text-accent tabular-nums">
+                    <div className="text-xl font-black font-mono text-accent tabular-nums">
                       {totalLifetimeVolume > 1000
                         ? `${(totalLifetimeVolume / 1000).toFixed(1)}t`
                         : `${totalLifetimeVolume}kg`}
                     </div>
-                    <div className="text-[9px] text-muted-foreground/60 font-mono">
-                      LIFETIME_TONNAGE
-                    </div>
                   </div>
                 </div>
 
-                {/* 4. Le Tue Schede Rapide */}
+                {/* 3. Le Tue Schede (1-Tap Direct Launch) */}
                 <AsciiBox
                   title={`LE_TUE_SCHEDE (${routines.length})`}
                   action={
@@ -440,38 +403,46 @@ export function App() {
                     </button>
                   }
                 >
-                  <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-                    {routines.slice(0, 4).map((routine) => (
-                      <button
+                  <div className="space-y-1.5">
+                    {routines.map((routine) => (
+                      <div
                         key={routine.id}
-                        type="button"
                         onClick={() => handleStartFromRoutine(routine)}
-                        className="shrink-0 rounded-[2px] border border-border bg-secondary/60 px-2.5 py-1.5 text-left hover:border-accent hover:bg-secondary active:bg-secondary transition-all"
+                        className="flex items-center justify-between gap-2 p-2 rounded-[2px] border border-border/80 bg-secondary/50 hover:bg-secondary hover:border-accent active:scale-[0.99] transition-all cursor-pointer group select-none"
                       >
-                        <div className="text-xs font-bold font-mono text-foreground truncate max-w-[120px]">
-                          {routine.title}
+                        <div className="min-w-0 flex-1 truncate">
+                          <div className="flex items-center gap-1.5 truncate">
+                            <span className="text-xs font-bold font-mono text-foreground group-hover:text-accent transition-colors truncate">
+                              {routine.title}
+                            </span>
+                            <span className="text-[10px] font-mono text-muted-foreground shrink-0">
+                              • {routine.exercises.length} es.
+                            </span>
+                          </div>
                         </div>
-                        <div className="text-[9px] font-mono text-accent font-semibold mt-0.5">
-                          {routine.exercises.length} es. &gt;
-                        </div>
-                      </button>
+
+                        <span className="text-[10px] font-mono font-bold text-accent shrink-0 border border-accent/40 bg-accent/10 px-1.5 py-0.5 rounded-[2px] group-hover:bg-accent group-hover:text-background transition-colors">
+                          [ ▶ AVVIA ]
+                        </span>
+                      </div>
                     ))}
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setRoutineToEdit(null);
-                        setRoutineEditorOpen(true);
-                      }}
-                      className="shrink-0 flex items-center gap-1 rounded-[2px] border border-dashed border-border bg-secondary/30 px-2.5 py-2 text-xs font-mono text-accent hover:bg-secondary/60 transition-all"
-                    >
-                      <Plus className="h-3 w-3" />
-                      <span>[ + CREA ]</span>
-                    </button>
+                    {routines.length === 0 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setRoutineToEdit(null);
+                          setRoutineEditorOpen(true);
+                        }}
+                        className="w-full py-3 rounded-[2px] border border-dashed border-border bg-secondary/20 text-xs font-mono text-muted-foreground hover:text-accent hover:border-accent transition-colors text-center"
+                      >
+                        [ + CREA LA TUA PRIMA SCHEDA ]
+                      </button>
+                    )}
                   </div>
                 </AsciiBox>
 
-                {/* 5. Ultima Sessione Svolta (con ASCII Tree) */}
+                {/* 4. Ultima Sessione Svolta (con ASCII Tree) */}
                 {lastSession ? (
                   <AsciiBox
                     title="ULTIMA_SESSIONE_SVOLTA"

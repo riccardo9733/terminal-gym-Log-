@@ -29,7 +29,7 @@ export function HistoryView({
 
   const filteredHistory = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
-    if (!q) return history;
+    if (!q || history.length < 4) return history;
     return history.filter(
       (w) =>
         w.title.toLowerCase().includes(q) ||
@@ -59,8 +59,8 @@ export function HistoryView({
         </div>
       </div>
 
-      {/* Search Filter */}
-      {history.length > 1 && (
+      {/* Search Filter - only shown when there are 4 or more sessions */}
+      {history.length >= 4 && (
         <div className="relative flex items-center border border-border bg-card px-2.5 py-1.5 text-xs rounded-[2px]">
           <span className="text-accent font-bold mr-2 select-none">$ grep</span>
           <input
@@ -182,49 +182,47 @@ export function HistoryView({
                   </div>
                 )}
 
-                {/* Expanded ASCII Tree Details */}
+                {/* Expanded Clean ASCII Tree Details (Zero nested box noise) */}
                 {isExpanded && (
                   <div className="border-t border-border/60 pt-2 space-y-2.5 animate-in fade-in duration-150">
-                    <div className="space-y-1.5 font-mono text-xs">
+                    <div className="space-y-2 font-mono text-xs">
                       {workout.exercises.map((ex, eIdx) => {
                         const isLast = eIdx === workout.exercises.length - 1;
                         const treeSymbol = isLast ? '└─' : '├─';
-                        const completedCount = ex.sets.filter((s) => s.completed).length;
+                        const completedSets = ex.sets.filter((s) => s.completed);
 
                         return (
-                          <div
-                            key={ex.id || eIdx}
-                            className="rounded-[2px] border border-border/40 bg-secondary/30 p-2 text-xs font-mono space-y-1.5 hover:border-accent/40 transition-colors"
-                          >
-                            <div
-                              onClick={() => handleOpenExerciseHistory(ex.exerciseId, ex.name, ex.muscleGroup)}
-                              className="flex items-center justify-between font-semibold text-foreground cursor-pointer group"
-                            >
-                              <div className="flex items-center gap-1.5 truncate">
-                                <span className="text-accent select-none font-bold">
+                          <div key={ex.id || eIdx} className="space-y-0.5">
+                            {/* Exercise Name line with tree symbol */}
+                            <div className="flex items-center justify-between">
+                              <div
+                                onClick={() => handleOpenExerciseHistory(ex.exerciseId, ex.name, ex.muscleGroup)}
+                                className="flex items-center gap-1.5 truncate cursor-pointer group"
+                                title="Tocca per aprire storico esercizio"
+                              >
+                                <span className="text-accent select-none font-bold shrink-0">
                                   {treeSymbol}
                                 </span>
-                                <span className="group-hover:text-accent transition-colors truncate">
+                                <span className="font-bold text-foreground group-hover:text-accent group-hover:underline transition-colors truncate">
                                   {ex.name}
                                 </span>
                               </div>
-                              <span className="text-[10px] text-muted-foreground uppercase shrink-0 tabular-nums">
-                                [{completedCount} SERIE]
+                              <span className="text-[10px] text-muted-foreground uppercase shrink-0 tabular-nums font-semibold">
+                                [{completedSets.length} SERIE]
                               </span>
                             </div>
 
-                            {/* Sets breakdown */}
-                            <div className="flex flex-wrap gap-1 pl-4">
-                              {ex.sets
-                                .filter((s) => s.completed)
-                                .map((set, sIdx) => (
-                                  <span
-                                    key={set.id || sIdx}
-                                    className="rounded-[2px] bg-secondary/80 px-1.5 py-0.5 text-[10px] font-mono text-foreground border border-border/60 tabular-nums"
-                                  >
-                                    {set.weight}kg × {set.reps}
-                                  </span>
-                                ))}
+                            {/* Clean sets breakdown without borders: e.g. 80kg × 8 │ 80kg × 8 │ 85kg × 6 */}
+                            <div className="pl-4 text-[11px] text-foreground/90 tabular-nums flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
+                              {completedSets.map((set, sIdx) => (
+                                <span key={set.id || sIdx} className="inline-flex items-center">
+                                  {sIdx > 0 && <span className="text-border mr-1.5 select-none">│</span>}
+                                  <span>{set.weight}kg × {set.reps}</span>
+                                </span>
+                              ))}
+                              {completedSets.length === 0 && (
+                                <span className="text-muted-foreground/40 text-[10px]">— nessuna serie completata</span>
+                              )}
                             </div>
                           </div>
                         );
@@ -232,8 +230,9 @@ export function HistoryView({
                     </div>
 
                     {/* Actions Bar */}
-                    <div className="flex items-center justify-between gap-2 pt-1 border-t border-border/40">
+                    <div className="flex items-center justify-between gap-2 pt-1.5 border-t border-border/40">
                       <Button
+                        type="button"
                         variant="destructive"
                         size="sm"
                         onClick={() => onDeleteWorkout(workout.id)}
@@ -243,6 +242,7 @@ export function HistoryView({
                       </Button>
 
                       <Button
+                        type="button"
                         variant="primary"
                         size="sm"
                         onClick={() => onStartFromTemplate(workout)}
