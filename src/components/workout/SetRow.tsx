@@ -1,4 +1,3 @@
-import { Trash2 } from 'lucide-react';
 import { WorkoutSet } from '../../types/workout';
 import { cn } from '../../lib/utils';
 
@@ -7,9 +6,10 @@ interface SetRowProps {
   set: WorkoutSet;
   prevWeight?: number;
   prevReps?: number;
+  fallbackWeight?: number;
+  fallbackReps?: number;
   onUpdate: (updated: Partial<WorkoutSet>) => void;
-  onToggleComplete: () => void;
-  onDelete: () => void;
+  onToggleComplete: (autoFilled?: { weight: number; reps: number }) => void;
 }
 
 export function SetRow({
@@ -17,10 +17,46 @@ export function SetRow({
   set,
   prevWeight,
   prevReps,
+  fallbackWeight,
+  fallbackReps,
   onUpdate,
   onToggleComplete,
-  onDelete,
 }: SetRowProps) {
+  // Resolve effective fallback values
+  const effectivePrevWeight = prevWeight !== undefined && prevWeight > 0 ? prevWeight : fallbackWeight;
+  const effectivePrevReps = prevReps !== undefined && prevReps > 0 ? prevReps : fallbackReps;
+
+  const handleApplyPrev = () => {
+    if (effectivePrevWeight !== undefined && effectivePrevReps !== undefined) {
+      onUpdate({ weight: effectivePrevWeight, reps: effectivePrevReps });
+    }
+  };
+
+  const handleToggle = () => {
+    if (!set.completed) {
+      // If weight or reps are unset (0), auto-fill with prev or fallback values
+      const autoWeight =
+        set.weight > 0
+          ? set.weight
+          : effectivePrevWeight !== undefined && effectivePrevWeight > 0
+          ? effectivePrevWeight
+          : 0;
+
+      const autoReps =
+        set.reps > 0
+          ? set.reps
+          : effectivePrevReps !== undefined && effectivePrevReps > 0
+          ? effectivePrevReps
+          : autoWeight > 0
+          ? 8
+          : 0;
+
+      onToggleComplete({ weight: autoWeight, reps: autoReps });
+    } else {
+      onToggleComplete();
+    }
+  };
+
   return (
     <div
       className={cn(
@@ -48,21 +84,30 @@ export function SetRow({
         {set.isWarmup ? '[W]' : `[${String(setIndex).padStart(2, '0')}]`}
       </button>
 
-      {/* 2. PREV: Previous Performance Reference */}
-      <div
-        className="w-16 shrink-0 text-[11px] font-mono text-center tabular-nums select-none truncate px-1"
-        title={
-          prevWeight !== undefined && prevReps !== undefined
-            ? `Prestazione precedente: ${prevWeight}kg × ${prevReps} reps`
-            : 'Nessuna prestazione precedente'
-        }
-      >
+      {/* 2. PREV: 1-Tap Autofill Button */}
+      <div className="w-16 shrink-0 flex items-center justify-center">
         {prevWeight !== undefined && prevReps !== undefined ? (
-          <span className="font-semibold text-muted-foreground">
+          <button
+            type="button"
+            onClick={handleApplyPrev}
+            className="w-full h-8 px-1 rounded-[2px] border border-border bg-secondary/60 hover:bg-secondary hover:border-accent active:scale-95 transition-all text-[11px] font-mono font-bold text-foreground tabular-nums select-none truncate text-center"
+            title={`Tocca per copiare: ${prevWeight}kg × ${prevReps} reps`}
+          >
             {prevWeight}×{prevReps}
-          </span>
+          </button>
+        ) : fallbackWeight !== undefined && fallbackWeight > 0 && fallbackReps !== undefined ? (
+          <button
+            type="button"
+            onClick={handleApplyPrev}
+            className="w-full h-8 px-1 rounded-[2px] border border-dashed border-border/70 bg-secondary/30 hover:bg-secondary hover:border-accent active:scale-95 transition-all text-[11px] font-mono font-medium text-muted-foreground hover:text-foreground tabular-nums select-none truncate text-center"
+            title={`Tocca per copiare da serie precedente: ${fallbackWeight}kg × ${fallbackReps} reps`}
+          >
+            {fallbackWeight}×{fallbackReps}
+          </button>
         ) : (
-          <span className="text-muted-foreground/30">—</span>
+          <span className="text-[11px] font-mono text-muted-foreground/30 tabular-nums select-none text-center">
+            —
+          </span>
         )}
       </div>
 
@@ -75,7 +120,11 @@ export function SetRow({
             min="0"
             inputMode="decimal"
             enterKeyHint="next"
-            placeholder={prevWeight !== undefined && prevWeight > 0 ? String(prevWeight) : '0'}
+            placeholder={
+              effectivePrevWeight !== undefined && effectivePrevWeight > 0
+                ? String(effectivePrevWeight)
+                : '0'
+            }
             value={set.weight === 0 ? '' : set.weight}
             onChange={(e) => {
               const val = parseFloat(e.target.value);
@@ -98,7 +147,11 @@ export function SetRow({
             min="0"
             inputMode="numeric"
             enterKeyHint="done"
-            placeholder={prevReps !== undefined && prevReps > 0 ? String(prevReps) : '0'}
+            placeholder={
+              effectivePrevReps !== undefined && effectivePrevReps > 0
+                ? String(effectivePrevReps)
+                : '0'
+            }
             value={set.reps === 0 ? '' : set.reps}
             onChange={(e) => {
               const val = parseInt(e.target.value, 10);
@@ -115,7 +168,7 @@ export function SetRow({
       {/* 5. DONE: ASCII Tactile Checkbox ([ ] / [x]) with 44x44px touch target */}
       <button
         type="button"
-        onClick={onToggleComplete}
+        onClick={handleToggle}
         className={cn(
           'flex h-11 w-11 shrink-0 items-center justify-center rounded-[2px] border font-mono text-xs font-black transition-all active:scale-95 select-none tracking-tighter',
           set.completed
@@ -125,16 +178,6 @@ export function SetRow({
         title={set.completed ? 'Serie completata [x]' : 'Segna serie [ ]'}
       >
         <span>{set.completed ? '[x]' : '[ ]'}</span>
-      </button>
-
-      {/* Delete Set Button */}
-      <button
-        type="button"
-        onClick={onDelete}
-        className="flex h-11 w-6 shrink-0 items-center justify-center text-muted-foreground/30 hover:text-destructive active:text-destructive transition-colors font-mono text-xs"
-        title="Elimina serie"
-      >
-        <Trash2 className="h-3.5 w-3.5" strokeWidth={1.75} />
       </button>
     </div>
   );

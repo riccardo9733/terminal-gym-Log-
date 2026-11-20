@@ -331,32 +331,35 @@ export function ActiveWorkout({
         [ + AGGIUNGI_ESERCIZIO ]
       </Button>
 
+      {/* Discreet Secondary Session Discard Action */}
+      <div className="pt-3 pb-2 text-center">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowCancelConfirm(true)}
+          className="text-xs font-mono text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 transition-colors"
+          title="Annulla e cancella la sessione attiva"
+        >
+          [ ✕ ANNULLA QUESTA SESSIONE ]
+        </Button>
+      </div>
+
       {/* ALWAYS VISIBLE PINNED BOTTOM ACTION BAR */}
       <div
         className="fixed left-0 right-0 z-30 border-t border-border bg-background"
         style={{ bottom: 'calc(2.75rem + env(safe-area-inset-bottom, 0px))' }}
       >
-        <div className="mx-auto flex max-w-md items-center justify-between gap-2 px-3 py-2">
-          {/* Always Visible DISCARD Button */}
-          <Button
-            type="button"
-            variant="destructive"
-            onClick={() => setShowCancelConfirm(true)}
-            className="flex-1 max-w-[130px] font-mono text-xs tracking-wider h-11"
-            title="Annulla sessione"
-          >
-            [ ✕ DISCARD ]
-          </Button>
-
-          {/* Always Visible FINISH Button */}
+        <div className="mx-auto flex max-w-md items-center px-3 py-2">
+          {/* Always Visible Full-Width FINISH Button */}
           <Button
             type="button"
             variant="primary"
             onClick={() => setShowFinishConfirm(true)}
-            className="flex-1 font-mono text-xs tracking-wider h-11"
+            className="w-full font-mono text-xs font-black tracking-wider h-11"
             title="Termina e registra sessione"
           >
-            <span>[ ✓ FINISH ({completedSets}/{totalSets}) ↵ ]</span>
+            <span>[ ✓ FINISH SESSION ({completedSets}/{totalSets}) ↵ ]</span>
           </Button>
         </div>
       </div>
